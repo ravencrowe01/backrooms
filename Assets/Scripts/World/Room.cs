@@ -11,7 +11,7 @@ public class Room : MonoBehaviour {
 
     public IEnumerable<CardinalDirection> OpenSides => GetOpenSides ();
 
-    private IList<CardinalDirection> GetOpenSides () {
+    public IList<CardinalDirection> GetOpenSides () {
         var open = new List<CardinalDirection> ();
 
         if(NorthOpen) {
