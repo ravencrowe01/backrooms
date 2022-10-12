@@ -1,6 +1,18 @@
 public enum CardinalDirection {
-    North = 1, 
-    South = 1 << 1, 
-    East = 1 << 2, 
-    West = 1 << 3
+    North, 
+    South, 
+    East, 
+    West,
+    NorthEast,
+    NorthWest,
+    SouthEast,
+    SouthWest,
+    NorthNorthWest,
+    NorthNorthEast,
+    EastNorthEast,
+    EastSouthEast,
+    SouthSouthEast,
+    SouthSouthWest,
+    WestSouthWest,
+    WestNorthWest,
 }

@@ -7,22 +7,57 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class ChunkGenerator : MonoBehaviour {
-    public Chunk BaseChunk;
-    public RoomCollection Rooms;
+    private class ChunkColumn {
+        public ChunkRoomSides[] RoomSides { get; set; }
+    }
 
-    private void Update () {
-        if (Input.GetKeyDown (KeyCode.L)) {
-            GenerateChunk ();
+    private class ChunkRoomSides {
+        public bool NorthOpen { get; private set; }
+        public bool SouthOpen { get; private set; }
+        public bool EastOpen { get; private set; }
+        public bool WestOpen { get; private set; }
+
+        public void SetSide (CardinalDirection direction, bool open) {
+            switch (direction) {
+                case CardinalDirection.North:
+                    NorthOpen = open;
+                    break;
+                case CardinalDirection.South:
+                    SouthOpen = open;
+                    break;
+                case CardinalDirection.East:
+                    EastOpen = open;
+                    break;
+                case CardinalDirection.West:
+                    WestOpen = open;
+                    break;
+            }
         }
     }
 
-    public Chunk GenerateChunk (Chunk[] neighbors = null) {
+    public Chunk BaseChunk;
+    public RoomCollection Rooms;
+
+    public Chunk GenerateChunk (CardinalDirection[] connections) {
         //var chunk = Instantiate (BaseChunk);
         var rooms = new RoomMetadata[3, 3];
-        var openSides = new ChunkRowSides[] {
-            new ChunkRowSides(),
-            new ChunkRowSides(),
-            new ChunkRowSides()
+        ChunkColumn[] openSides = ConstructRooms ();
+
+        // TODO Continue generating chunk
+
+        // This is hard and I'll do it later
+        FixRoomConnections (openSides);
+
+        AddChunkConnections (openSides, connections);
+
+        return null;
+    }
+
+    private ChunkColumn[] ConstructRooms () {
+        var openSides = new ChunkColumn[] {
+            new ChunkColumn(),
+            new ChunkColumn(),
+            new ChunkColumn()
         };
 
         for (int x = 0; x <= 2; x++) {
@@ -31,46 +66,52 @@ public class ChunkGenerator : MonoBehaviour {
             }
         }
 
-        // TODO Continue generating chunk
-
-        return null;
+        return openSides;
     }
 
     private ChunkRoomSides ConstructRoom (int x, int y) {
-        var dirs = new List<CardinalDirection> { CardinalDirection.North, CardinalDirection.South, CardinalDirection.East, CardinalDirection.West };
-        var openCount = GetRandomOpenCount (x, y);
+        var directions = new List<CardinalDirection> { CardinalDirection.North, CardinalDirection.South, CardinalDirection.East, CardinalDirection.West };
         var room = new ChunkRoomSides ();
 
+        //The center room needs to have at least two open sides.
         if (x == 1 && y == 1) {
-            AddStartSides (room, dirs, dirs);
-            AddStartSides (room, dirs, dirs);
-            openCount -= 2;
+            AddMinimumSides (room, directions, directions, 2);
         }
+        // The outer rooms need to have at least one open side.
         else {
             var minOpen = GetMinmumOpenSides (x, y);
-            AddStartSides (room, dirs, minOpen);
-            openCount -= 1;
+            AddMinimumSides (room, directions, minOpen, 1);
         }
 
-        while (openCount > 0) {
-            var chosen = dirs[Random.Range (0, dirs.Count)];
+        var openCount = GetRandomOpenCount (x, y);
 
-            dirs.Remove (chosen);
-
-            room.Open.Add (chosen);
-
-            openCount--;
-        }
+        AddOpenSides (room, directions, openCount);
 
         return room;
     }
 
-    private static void AddStartSides (ChunkRoomSides room, List<CardinalDirection> dirs, IList<CardinalDirection> minOpen) {
-        var chosen = minOpen[Random.Range (0, minOpen.Count)];
+    private void AddOpenSides (ChunkRoomSides room, IList<CardinalDirection> directions, int amount) {
+        do {
+            var chosen = directions[Random.Range (0, directions.Count)];
 
-        room.Open.Add (chosen);
+            room.SetSide (chosen, true);
 
-        dirs.Remove (chosen);
+            directions.Remove (chosen);
+
+            amount--;
+        } while (amount > 0);
+    }
+
+    private void AddMinimumSides (ChunkRoomSides room, IList<CardinalDirection> directions, IList<CardinalDirection> minimum, int amount) {
+        var temp = new List<CardinalDirection> (minimum);
+
+        AddOpenSides (room, minimum, amount);
+
+        temp.AddRange (minimum);
+
+        var open = temp.Distinct ().ToList ();
+
+        open.ForEach (d => directions.Remove (d));
     }
 
     private IList<CardinalDirection> GetMinmumOpenSides (int x, int y) {
@@ -81,8 +122,7 @@ public class ChunkGenerator : MonoBehaviour {
                 sides.Add (CardinalDirection.East);
                 break;
             case 1:
-                sides.Add (CardinalDirection.East);
-                sides.Add (CardinalDirection.West);
+                sides.AddRange (new List<CardinalDirection> { CardinalDirection.East, CardinalDirection.West });
                 break;
             case 2:
                 sides.Add (CardinalDirection.West);
@@ -90,15 +130,14 @@ public class ChunkGenerator : MonoBehaviour {
         }
 
         switch (y) {
-            case 0:
-                sides.Add (CardinalDirection.South);
-                break;
-            case 1:
-                sides.Add (CardinalDirection.South);
-                sides.Add (CardinalDirection.North);
-                break;
             case 2:
                 sides.Add (CardinalDirection.North);
+                break;
+            case 1:
+                sides.AddRange (new List<CardinalDirection> { CardinalDirection.North, CardinalDirection.South });
+                break;
+            case 0:
+                sides.Add (CardinalDirection.South);
                 break;
         }
 
@@ -113,27 +152,61 @@ public class ChunkGenerator : MonoBehaviour {
         return Random.Range (1, 4);
     }
 
-    private CardinalDirection GetOppositeSide (CardinalDirection direction) => direction switch {
-        CardinalDirection.North => CardinalDirection.South,
-        CardinalDirection.South => CardinalDirection.North,
-        CardinalDirection.East => CardinalDirection.East,
-        CardinalDirection.West => CardinalDirection.East,
-        _ => throw new Exception ($"Cardinal direction {direction} out of range."),
-    };
+    private void FixRoomConnections (ChunkColumn[] rooms) {
 
-    private class ChunkRowSides {
-        public ChunkRoomSides[] RoomSides { get; set; }
-
-        public ChunkRowSides () {
-            RoomSides = new ChunkRoomSides[] {
-                new ChunkRoomSides(),
-                new ChunkRoomSides(),
-                new ChunkRoomSides()
-            };
-        }
     }
 
-    private class ChunkRoomSides {
-        public List<CardinalDirection> Open { get; set; } = new List<CardinalDirection> ();
+    private void AddChunkConnections (ChunkColumn[] rooms, CardinalDirection[] connections) {
+        foreach (var con in connections) {
+            switch (con) {
+                #region North
+                case CardinalDirection.NorthNorthEast:
+                    rooms[0].RoomSides[0].SetSide (CardinalDirection.North, true);
+                    break;
+                case CardinalDirection.North:
+                    rooms[1].RoomSides[0].SetSide (CardinalDirection.North, true);
+                    break;
+                case CardinalDirection.NorthNorthWest:
+                    rooms[2].RoomSides[0].SetSide (CardinalDirection.North, true);
+                    break;
+                #endregion
+
+                #region South
+                case CardinalDirection.SouthSouthEast:
+                    rooms[0].RoomSides[0].SetSide (CardinalDirection.South, true);
+                    break;
+                case CardinalDirection.South:
+                    rooms[1].RoomSides[0].SetSide (CardinalDirection.South, true);
+                    break;
+                case CardinalDirection.SouthSouthWest:
+                    rooms[2].RoomSides[0].SetSide (CardinalDirection.South, true);
+                    break;
+                #endregion
+
+                #region
+                case CardinalDirection.EastNorthEast:
+                    rooms[0].RoomSides[0].SetSide (CardinalDirection.East, true);
+                    break;
+                case CardinalDirection.East:
+                    rooms[0].RoomSides[1].SetSide (CardinalDirection.East, true);
+                    break;
+                case CardinalDirection.EastSouthEast:
+                    rooms[0].RoomSides[2].SetSide (CardinalDirection.East, true);
+                    break;
+                #endregion
+
+                #region
+                case CardinalDirection.WestSouthWest:
+                    rooms[0].RoomSides[0].SetSide (CardinalDirection.West, true);
+                    break;
+                case CardinalDirection.West:
+                    rooms[0].RoomSides[1].SetSide (CardinalDirection.West, true);
+                    break;
+                case CardinalDirection.WestNorthWest:
+                    rooms[0].RoomSides[2].SetSide (CardinalDirection.West, true);
+                    break;
+                #endregion
+            }
+        }
     }
 }
