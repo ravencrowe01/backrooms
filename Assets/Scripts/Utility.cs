@@ -2,19 +2,19 @@ using Backrooms.Scripts;
 using System;
 
 public class Utility {
-    public CardinalDirection GetOppositeSide (CardinalDirection direction) => direction switch {
-        CardinalDirection.North => CardinalDirection.South,
-        CardinalDirection.South => CardinalDirection.North,
-        CardinalDirection.East => CardinalDirection.East,
-        CardinalDirection.West => CardinalDirection.East,
-        CardinalDirection.NorthEast => CardinalDirection.SouthWest,
-        CardinalDirection.NorthWest => CardinalDirection.SouthEast,
-        CardinalDirection.SouthEast => CardinalDirection.NorthWest,
-        CardinalDirection.SouthWest => CardinalDirection.NorthEast,
-        CardinalDirection.NorthNorthWest => CardinalDirection.SouthSouthEast,
-        CardinalDirection.NorthNorthEast => CardinalDirection.SouthSouthWest,
-        CardinalDirection.EastNorthEast => CardinalDirection.WestNorthWest,
-        CardinalDirection.EastSouthEast => CardinalDirection.WestSouthWest,
+    public static Direction GetOppositeSide (Direction direction) => direction switch {
+        Direction.North => Direction.South,
+        Direction.South => Direction.North,
+        Direction.East => Direction.East,
+        Direction.West => Direction.East,
+        Direction.NorthEast => Direction.SouthWest,
+        Direction.NorthWest => Direction.SouthEast,
+        Direction.SouthEast => Direction.NorthWest,
+        Direction.SouthWest => Direction.NorthEast,
+        Direction.NorthNorthWest => Direction.SouthSouthEast,
+        Direction.NorthNorthEast => Direction.SouthSouthWest,
+        Direction.EastNorthEast => Direction.WestNorthWest,
+        Direction.EastSouthEast => Direction.WestSouthWest,
         _ => throw new Exception ($"Cardinal direction {direction} out of range."),
     };
 }

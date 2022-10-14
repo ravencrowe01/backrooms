@@ -7,71 +7,65 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Backrooms.Scripts.World {
-    public class ChunkGenerator : MonoBehaviour {
-        private class ChunkColumn {
-            public ChunkRoom[] Rooms { get; set; }
-        }
-
-        private class ChunkRoom {
+    public class ChunkBuilder : MonoBehaviour {
+        public class ChunkRoom {
             public bool NorthOpen { get; private set; }
             public bool SouthOpen { get; private set; }
             public bool EastOpen { get; private set; }
             public bool WestOpen { get; private set; }
 
-            public void SetSide (CardinalDirection direction, bool open) {
+            public void SetSideState (Direction direction, bool open) {
                 switch (direction) {
-                    case CardinalDirection.North:
+                    case Direction.North:
                         NorthOpen = open;
                         break;
-                    case CardinalDirection.South:
+                    case Direction.South:
                         SouthOpen = open;
                         break;
-                    case CardinalDirection.East:
+                    case Direction.East:
                         EastOpen = open;
                         break;
-                    case CardinalDirection.West:
+                    case Direction.West:
                         WestOpen = open;
                         break;
                 }
             }
         }
 
-        public Chunk BaseChunk;
-        public RoomCollection Rooms;
+        private readonly int _width;
+        private readonly int _height;
 
-        public Chunk GenerateChunk (CardinalDirection[] connections) {
-            var chunk = Instantiate (BaseChunk);
-            var rooms = new RoomMetadata[3, 3];
-            ChunkColumn[] openSides = ConstructRooms ();
+        private ChunkRoom[,] _rooms;
+
+        public ChunkBuilder (int width = 3, int height = 3) {
+            _width = width;
+            _height = height;
+        }
+
+        #region Room building
+        public void BuildRooms (Direction[] connections) {
+            ConstructRooms ();
 
             // TODO Continue generating chunk
 
             // This is hard and I'll do it later
-            FixRoomConnections (openSides);
+            FixRoomConnections ();
 
-            AddChunkConnections (openSides, connections);
-
-            return null;
+            AddChunkConnections (connections);
         }
 
-        private ChunkColumn[] ConstructRooms () {
-            var openSides = new ChunkColumn[] {
-            new ChunkColumn(),
-            new ChunkColumn(),
-            new ChunkColumn()
-        };
+        private void ConstructRooms () {
+            var _rooms = new ChunkRoom[_width, _height];
 
             for (int x = 0; x <= 2; x++) {
                 for (int y = 0; y <= 2; y++) {
-                    openSides[x].Rooms[y] = ConstructRoom (x, y);
+                    _rooms[x, y] = ConstructRoom (x, y);
                 }
             }
-
-            return openSides;
         }
 
         private ChunkRoom ConstructRoom (int x, int y) {
-            var directions = new List<CardinalDirection> { CardinalDirection.North, CardinalDirection.South, CardinalDirection.East, CardinalDirection.West };
+            var directions = new List<Direction> { Direction.North, Direction.South, Direction.East, Direction.West };
             var room = new ChunkRoom ();
 
             //The center room needs to have at least two open sides.
@@ -91,11 +85,11 @@ namespace Backrooms.Scripts.World {
             return room;
         }
 
-        private void AddOpenSides (ChunkRoom room, IList<CardinalDirection> directions, int amount) {
+        private void AddOpenSides (ChunkRoom room, IList<Direction> directions, int amount) {
             do {
                 var chosen = directions[Random.Range (0, directions.Count)];
 
-                room.SetSide (chosen, true);
+                room.SetSideState (chosen, true);
 
                 directions.Remove (chosen);
 
@@ -103,8 +97,8 @@ namespace Backrooms.Scripts.World {
             } while (amount > 0);
         }
 
-        private void AddMinimumSides (ChunkRoom room, IList<CardinalDirection> directions, IList<CardinalDirection> minimum, int amount) {
-            var temp = new List<CardinalDirection> (minimum);
+        private void AddMinimumSides (ChunkRoom room, IList<Direction> directions, IList<Direction> minimum, int amount) {
+            var temp = new List<Direction> (minimum);
 
             AddOpenSides (room, minimum, amount);
 
@@ -115,30 +109,30 @@ namespace Backrooms.Scripts.World {
             open.ForEach (d => directions.Remove (d));
         }
 
-        private IList<CardinalDirection> GetMinmumOpenSides (int x, int y) {
-            var sides = new List<CardinalDirection> ();
+        private IList<Direction> GetMinmumOpenSides (int x, int y) {
+            var sides = new List<Direction> ();
 
             switch (x) {
                 case 0:
-                    sides.Add (CardinalDirection.East);
+                    sides.Add (Direction.East);
                     break;
                 case 1:
-                    sides.AddRange (new List<CardinalDirection> { CardinalDirection.East, CardinalDirection.West });
+                    sides.AddRange (new List<Direction> { Direction.East, Direction.West });
                     break;
                 case 2:
-                    sides.Add (CardinalDirection.West);
+                    sides.Add (Direction.West);
                     break;
             }
 
             switch (y) {
                 case 2:
-                    sides.Add (CardinalDirection.North);
+                    sides.Add (Direction.North);
                     break;
                 case 1:
-                    sides.AddRange (new List<CardinalDirection> { CardinalDirection.North, CardinalDirection.South });
+                    sides.AddRange (new List<Direction> { Direction.North, Direction.South });
                     break;
                 case 0:
-                    sides.Add (CardinalDirection.South);
+                    sides.Add (Direction.South);
                     break;
             }
 
@@ -153,62 +147,125 @@ namespace Backrooms.Scripts.World {
             return Random.Range (1, 4);
         }
 
-        private void FixRoomConnections (ChunkColumn[] rooms) {
+        private void FixRoomConnections () {
 
         }
 
-        private void AddChunkConnections (ChunkColumn[] rooms, CardinalDirection[] connections) {
+        private void AddChunkConnections (Direction[] connections) {
             foreach (var con in connections) {
                 switch (con) {
                     #region North
-                    case CardinalDirection.NorthNorthEast:
-                        rooms[0].Rooms[0].SetSide (CardinalDirection.North, true);
+                    case Direction.NorthNorthEast:
+                        _rooms[0, 0].SetSideState (Direction.North, true);
                         break;
-                    case CardinalDirection.North:
-                        rooms[1].Rooms[0].SetSide (CardinalDirection.North, true);
+                    case Direction.North:
+                        _rooms[1, 0].SetSideState (Direction.North, true);
                         break;
-                    case CardinalDirection.NorthNorthWest:
-                        rooms[2].Rooms[0].SetSide (CardinalDirection.North, true);
+                    case Direction.NorthNorthWest:
+                        _rooms[2, 0].SetSideState (Direction.North, true);
                         break;
                     #endregion
 
                     #region South
-                    case CardinalDirection.SouthSouthEast:
-                        rooms[0].Rooms[0].SetSide (CardinalDirection.South, true);
+                    case Direction.SouthSouthEast:
+                        _rooms[0, 0].SetSideState (Direction.South, true);
                         break;
-                    case CardinalDirection.South:
-                        rooms[1].Rooms[0].SetSide (CardinalDirection.South, true);
+                    case Direction.South:
+                        _rooms[1, 0].SetSideState (Direction.South, true);
                         break;
-                    case CardinalDirection.SouthSouthWest:
-                        rooms[2].Rooms[0].SetSide (CardinalDirection.South, true);
-                        break;
-                    #endregion
-
-                    #region
-                    case CardinalDirection.EastNorthEast:
-                        rooms[0].Rooms[0].SetSide (CardinalDirection.East, true);
-                        break;
-                    case CardinalDirection.East:
-                        rooms[0].Rooms[1].SetSide (CardinalDirection.East, true);
-                        break;
-                    case CardinalDirection.EastSouthEast:
-                        rooms[0].Rooms[2].SetSide (CardinalDirection.East, true);
+                    case Direction.SouthSouthWest:
+                        _rooms[2, 0].SetSideState (Direction.South, true);
                         break;
                     #endregion
 
-                    #region
-                    case CardinalDirection.WestSouthWest:
-                        rooms[0].Rooms[0].SetSide (CardinalDirection.West, true);
+                    #region East
+                    case Direction.EastNorthEast:
+                        _rooms[0, 0].SetSideState (Direction.East, true);
                         break;
-                    case CardinalDirection.West:
-                        rooms[0].Rooms[1].SetSide (CardinalDirection.West, true);
+                    case Direction.East:
+                        _rooms[0, 1].SetSideState (Direction.East, true);
                         break;
-                    case CardinalDirection.WestNorthWest:
-                        rooms[0].Rooms[2].SetSide (CardinalDirection.West, true);
+                    case Direction.EastSouthEast:
+                        _rooms[0, 2].SetSideState (Direction.East, true);
+                        break;
+                    #endregion
+
+                    #region West
+                    case Direction.WestSouthWest:
+                        _rooms[0, 0].SetSideState (Direction.West, true);
+                        break;
+                    case Direction.West:
+                        _rooms[0, 1].SetSideState (Direction.West, true);
+                        break;
+                    case Direction.WestNorthWest:
+                        _rooms[0, 2].SetSideState (Direction.West, true);
                         break;
                         #endregion
                 }
             }
         }
+        #endregion
+
+        #region Hallway building
+        public void AddHallway (Direction start, Direction end) {
+            var startCords = GetOuterRoomCordsFromDirection (start);
+            var endCords = GetOuterRoomCordsFromDirection (end);
+
+            var buildDirection = GetHallwayBuildDirection (startCords, endCords);
+
+            switch(buildDirection) {
+                case Direction.South:
+                    BuildNorthSouthHallway (startCords, endCords);
+                    break;
+                case Direction.East:
+                    BuildEastWestHallway (startCords, endCords);
+                    break;
+            }
+        }
+
+        private Vector2 GetOuterRoomCordsFromDirection(Direction direction) {
+            return direction switch {
+                Direction.North => new Vector2(1, 0),
+                Direction.NorthEast or Direction.NorthNorthEast or Direction.EastNorthEast => new Vector2(0, 0),
+                Direction.East => new Vector2(0, 1),
+                Direction.SouthEast or Direction.EastSouthEast or Direction.SouthSouthEast => new Vector2(0, 2),
+                Direction.South => new Vector2(1, 2),
+                Direction.SouthWest or Direction.SouthSouthWest or Direction.WestSouthWest => new Vector2(2, 2),
+                Direction.West => new Vector2(2, 1),
+                Direction.NorthWest or Direction.WestNorthWest or Direction.NorthNorthWest => new Vector2(2, 0),
+                _ => throw new ArgumentException ($"Unknow cardinal direction {direction}"),
+            };
+        }
+
+        private Direction GetHallwayBuildDirection(Vector2 start, Vector2 end) {
+            if(start.y != end.y) {
+                return Direction.South;
+            }
+
+            if (start.x != end.x) {
+                return Direction.East;
+            }
+
+            throw new ArgumentException ("Hallways must connect from one edge of a chunk to another in a straight line.");
+        }
+
+        private void BuildNorthSouthHallway(Vector2 start, Vector2 end) {
+            _rooms[(int) start.x, (int) start.y].SetSideState (Direction.South, true);
+
+            _rooms[(int) start.x, (int) (start.y + 1)].SetSideState (Direction.North, true);
+            _rooms[(int) start.x, (int) (start.y + 1)].SetSideState (Direction.South, true);
+
+            _rooms[(int) end.x, (int) end.y].SetSideState (Direction.North, true);
+        }
+
+        private void BuildEastWestHallway (Vector2 start, Vector2 end) {
+            _rooms[(int) start.x, (int) start.y].SetSideState (Direction.East, true);
+
+            _rooms[(int) (start.x + 1), (int) start.y].SetSideState (Direction.East, true);
+            _rooms[(int) (start.x + 1), (int) start.y].SetSideState (Direction.West, true);
+
+            _rooms[(int) end.x, (int) end.y].SetSideState (Direction.West, true);
+        }
+        #endregion
     }
 }

@@ -1,5 +1,5 @@
 namespace Backrooms.Scripts {
-    public enum CardinalDirection {
+    public enum Direction {
         North,
         South,
         East,

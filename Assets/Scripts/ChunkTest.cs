@@ -19,7 +19,7 @@ public class ChunkTest : MonoBehaviour {
                 _currentRoom = null;
             }
 
-            var room = Room.GetRandomRoomWithOpenSide (CardinalDirection.North);
+            var room = Room.GetRandomRoomWithOpenSide (Direction.North);
 
             _currentRoom = Instantiate (room, transform);
         }

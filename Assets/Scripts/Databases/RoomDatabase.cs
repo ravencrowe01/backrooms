@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Backrooms.Scripts.Databases {
     public class RoomDatabase : MonoBehaviour {
@@ -35,9 +36,21 @@ namespace Backrooms.Scripts.Databases {
                     _rooms.Add (room.ID, room);
                 }
                 catch (ArgumentException) {
-                    throw new IDConflictException ();
+                    throw new IDConflictException ($"A room with ID {room.ID} already exists in the database.");
                 }
             }
+        }
+
+        public Room GetRoomByID (int id) => _rooms.ContainsKey (id) ? _rooms[id] : default;
+
+        public Room GetRandomRoomWithOpenSides (Direction[] sides) {
+            var temp = _rooms.Values.ToList();
+
+            foreach (var side in sides) {
+                temp = temp.Where (r => r.IsSideOpen (side)).ToList ();
+            }
+
+            return temp[Random.Range (0, temp.Count ())];
         }
     }
 }

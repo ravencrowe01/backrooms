@@ -83,15 +83,15 @@ public class RoomMetadata : ScriptableObject {
 
     public Room DefaultRandomRoom;
 
-    public Room GetRandomRoomWithOpenSide (CardinalDirection side) => side switch {
-        CardinalDirection.North => GetRandomRoomWithOpenSide (NorthRooms, side),
-        CardinalDirection.South => GetRandomRoomWithOpenSide (SouthRooms, side),
-        CardinalDirection.East => GetRandomRoomWithOpenSide (EastRooms, side),
-        CardinalDirection.West => GetRandomRoomWithOpenSide (WestRooms, side),
+    public Room GetRandomRoomWithOpenSide (Direction side) => side switch {
+        Direction.North => GetRandomRoomWithOpenSide (NorthRooms, side),
+        Direction.South => GetRandomRoomWithOpenSide (SouthRooms, side),
+        Direction.East => GetRandomRoomWithOpenSide (EastRooms, side),
+        Direction.West => GetRandomRoomWithOpenSide (WestRooms, side),
         _ => throw new Exception ($"Cardinal direction {side} out of range."),
     };
 
-    private Room GetRandomRoomWithOpenSide (RoomWeight[] sidedRooms, CardinalDirection side) {
+    private Room GetRandomRoomWithOpenSide (RoomWeight[] sidedRooms, Direction side) {
         var rooms = GetAvailableRooms (sidedRooms).Where (r => r.RoomMetadata.IsSideOpen (side));
 
         var roll = Random.Range (0, NorthRoomsWeightTotal);
@@ -118,19 +118,19 @@ public class RoomMetadata : ScriptableObject {
         return rooms;
     }
 
-    public bool IsSideOpen (CardinalDirection side) => side switch {
-        CardinalDirection.North => Room.NorthOpen,
-        CardinalDirection.South => Room.SouthOpen,
-        CardinalDirection.East => Room.EastOpen,
-        CardinalDirection.West => Room.WestOpen,
+    public bool IsSideOpen (Direction side) => side switch {
+        Direction.North => Room.NorthOpen,
+        Direction.South => Room.SouthOpen,
+        Direction.East => Room.EastOpen,
+        Direction.West => Room.WestOpen,
         _ => throw new Exception ($"Cardinal direction {side} out of range."),
     };
 
-    public bool CanConnectToSide (CardinalDirection side) => side switch {
-        CardinalDirection.North => Room.SouthOpen,
-        CardinalDirection.South => Room.NorthOpen,
-        CardinalDirection.East => Room.WestOpen,
-        CardinalDirection.West => Room.EastOpen,
+    public bool CanConnectToSide (Direction side) => side switch {
+        Direction.North => Room.SouthOpen,
+        Direction.South => Room.NorthOpen,
+        Direction.East => Room.WestOpen,
+        Direction.West => Room.EastOpen,
         _ => throw new Exception ($"Cardinal direction {side} out of range."),
     };
 }
