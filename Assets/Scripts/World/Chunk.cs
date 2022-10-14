@@ -1,45 +1,53 @@
 using UnityEngine;
 
-public class Chunk : MonoBehaviour {
-    private readonly Room[,] _rooms = new Room[3, 3];
+namespace Assets.Scripts {
+    public class Chunk : MonoBehaviour {
+        private readonly Room[,] _rooms = new Room[3, 3];
 
-    public void AddRoom (int x, int y, Room room) => _rooms[x, y] = room;
+        #region North
+        public bool NorthNorthEastOpen => _rooms[0, 0].NorthOpen;
+        public bool NorthOpen => _rooms[1, 0].NorthOpen;
+        public bool NorthNorthWestOpen => _rooms[2, 0].NorthOpen;
+        #endregion
 
-    public Room GetRoom (int x, int y) => _rooms[x, y];
+        #region South
+        public bool SouthSouthWestOpen => _rooms[0, 2].SouthOpen;
+        public bool SouthOpen => _rooms[1, 2].SouthOpen;
+        public bool SouthSouthEastOpen => _rooms[2, 2].SouthOpen;
+        #endregion
 
-    public void InstantiateRooms () {
-        for (int x = 0; x < 3; x++) {
-            for (int y = 0; y < 3; y++) {
-                var room = _rooms[x, y];
+        #region East
+        public bool EastSouthEastOpen => _rooms[0, 0].EastOpen;
+        public bool EastOpen => _rooms[0, 1].EastOpen;
+        public bool EastNorthEastOpen => _rooms[0, 2].EastOpen;
+        #endregion
 
-                if (room != null) {
-                    Instantiate (room, transform.GetChild(x).GetChild(y));
+        #region West
+        public bool WestNorthWestOpen => _rooms[0, 0].WestOpen;
+        public bool WestOpen => _rooms[2, 1].WestOpen;
+        public bool WestSouthWestOpen => _rooms[0, 2].WestOpen;
+        #endregion
+
+        private void Start () {
+            for (int x = 0; x < 3; x++) {
+                for (int y = 0; y < 3; y++) {
+                    _rooms[x, y] = new Room ();
+                }
+            }
+        }
+
+        public Room GetRoom (int x, int y) => _rooms[x, y];
+
+        public void InstantiateRooms () {
+            for (int x = 0; x < 3; x++) {
+                for (int y = 0; y < 3; y++) {
+                    var room = _rooms[x, y];
+
+                    if (room != null) {
+                        Instantiate (room, transform.GetChild (x).GetChild (y));
+                    }
                 }
             }
         }
     }
-
-    public bool IsNorthOpen () => _rooms[0, 1].NorthOpen;
-
-    public bool IsNorthNorthWestOpen () => _rooms[0, 0].NorthOpen;
-
-    public bool IsWestNorthWestOpen () => _rooms[0, 0].WestOpen;
-
-    public bool IsWestOpen () => _rooms[1, 0].WestOpen;
-
-    public bool IsWestSouthWestOpen () => _rooms[2, 0].WestOpen;
-
-    public bool IsSouthSouthWestOpen () => _rooms[2, 0].SouthOpen;
-
-    public bool IsSouthOpen () => _rooms[2, 1].SouthOpen;
-
-    public bool IsSouthSouthEastOpen () => _rooms[2, 2].SouthOpen;
-
-    public bool IsEastSouthEastOpen () => _rooms[2, 2].EastOpen;
-
-    public bool IsEastOpen () => _rooms[1, 2].EastOpen;
-
-    public bool IsEastNorthEastOpen () => _rooms[0, 2].EastOpen;
-
-    public bool IsNorthNorthEastOpen () => _rooms[0, 2].NorthOpen;
 }

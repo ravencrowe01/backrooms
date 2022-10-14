@@ -1,41 +1,33 @@
+using Assets.Scripts;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class Room : MonoBehaviour {
+    public int ID;
+
     public bool NorthOpen;
     public bool SouthOpen;
     public bool EastOpen;
     public bool WestOpen;
 
-    public IEnumerable<CardinalDirection> OpenSides => GetOpenSides ();
+    public IEnumerable<CardinalDirection> OpenSides => (IEnumerable<CardinalDirection>) GetOpenSides ();
 
-    public IList<CardinalDirection> GetOpenSides () {
-        var open = new List<CardinalDirection> ();
-
+    private IEnumerable GetOpenSides () {
         if(NorthOpen) {
-            open.Add (CardinalDirection.North);
+            yield return CardinalDirection.North;
         }
 
         if(SouthOpen) {
-            open.Add (CardinalDirection.South);
+            yield return CardinalDirection.South;
         }
 
         if(EastOpen) {
-            open.Add (CardinalDirection.East);
+            yield return CardinalDirection.East;
         }
 
         if(WestOpen) {
-            open.Add (CardinalDirection.West);
+            yield return CardinalDirection.West;
         }
-
-        return open;
-    }
-
-    public CardinalDirection GetRandomOpenSide () {
-        var open = GetOpenSides();
-
-        return open[Random.Range (0, open.Count ())];
     }
 }
