@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Exceptions;
+﻿using Backrooms.Scripts.Exceptions;
+using Backrooms.Scripts.World;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Assets.Scripts.Databases {
+namespace Backrooms.Scripts.Databases {
     public class RoomDatabase : MonoBehaviour {
         /// <summary>
         /// This is exposed so that rooms can be added in the editor,

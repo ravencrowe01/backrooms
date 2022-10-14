@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Assets.Scripts {
+namespace Backrooms.Scripts.World {
     public class Chunk : MonoBehaviour {
         private readonly Room[,] _rooms = new Room[3, 3];
 
