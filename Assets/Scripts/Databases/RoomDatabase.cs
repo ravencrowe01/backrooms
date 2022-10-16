@@ -1,6 +1,6 @@
 ﻿using Backrooms.Assets.Scripts;
 using Backrooms.Assets.Scripts.World;
-using Backrooms.Scripts.Exceptions;
+using Backrooms.Assets.Scripts.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
