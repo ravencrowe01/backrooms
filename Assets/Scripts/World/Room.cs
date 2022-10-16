@@ -1,9 +1,10 @@
+using Backrooms.Assets.Scripts;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Backrooms.Scripts.World {
+namespace Backrooms.Assets.Scripts.World {
     public class Room : MonoBehaviour {
         public int ID;
 

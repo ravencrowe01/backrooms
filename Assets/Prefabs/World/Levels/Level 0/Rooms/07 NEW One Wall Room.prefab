@@ -107,7 +107,7 @@ GameObject:
   - component: {fileID: 5117041398366689451}
   - component: {fileID: 7641019608512174652}
   m_Layer: 0
-  m_Name: NSW One Wall Room
+  m_Name: 07 NEW One Wall Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -141,9 +141,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3889943bd1af5d3488a8531ac589fccd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ID: 7
   NorthOpen: 1
-  SouthOpen: 1
-  EastOpen: 0
+  SouthOpen: 0
+  EastOpen: 1
   WestOpen: 1
 --- !u!1001 &3580871023717076643
 PrefabInstance:

@@ -107,7 +107,7 @@ GameObject:
   - component: {fileID: 596789244287084499}
   - component: {fileID: 4152574661206277884}
   m_Layer: 0
-  m_Name: Closed Room
+  m_Name: 00 Closed Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

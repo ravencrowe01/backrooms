@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6793725434098608768}
   - component: {fileID: 6925074850783801206}
   m_Layer: 0
-  m_Name: Open Room
+  m_Name: 15 Open Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,6 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3889943bd1af5d3488a8531ac589fccd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ID: 15
   NorthOpen: 1
   SouthOpen: 1
   EastOpen: 1

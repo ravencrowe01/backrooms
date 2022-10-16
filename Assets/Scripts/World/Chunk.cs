@@ -1,14 +1,14 @@
-using System;
+using Backrooms.Assets.Scripts;
+using Backrooms.Assets.Scripts.Databases;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
-namespace Backrooms.Scripts.World {
+namespace Backrooms.Assets.Scripts.World {
     public class Chunk : MonoBehaviour {
         public int Height = 3;
         public int Width = 3;
 
+        private readonly List<Direction> _connections = new List<Direction> ();
         private Room[,] _rooms;
 
         #region North Open States
@@ -39,11 +39,118 @@ namespace Backrooms.Scripts.World {
             _rooms = new Room[Width, Height];
         }
 
+        public void AddConnections (IEnumerable<Direction> connections) => _connections.AddRange (connections);
+
+        public void BuildChunk () {
+            var chunkBuilder = new ChunkBuilder ();
+
+            chunkBuilder.BuildRooms (_connections);
+
+            for (int x = 0; x < Width; x++) {
+                for (int y = 0; y < Height; y++) {
+                    var room = chunkBuilder.Rooms[x, y];
+
+                    _rooms[x, y] = RoomDatabase.Instance.GetRandomRoomWithOpenSides (room.GetOpenSides ());
+                }
+            }
+        }
+
+        public IEnumerable<Direction> GetConnections (Direction direction) {
+            switch (direction) {
+                case Direction.North:
+                    return GetNorthConnections ();
+                case Direction.South:
+                    return GetSouthConnections ();
+                case Direction.East:
+                    return GetEastConnections ();
+                case Direction.West:
+                    return GetWestConnections ();
+                default:
+                    return new List<Direction> ();
+            }
+        }
+
+        private IEnumerable<Direction> GetNorthConnections () {
+            var con = new List<Direction> ();
+
+            if (NorthNorthEastOpen) {
+                con.Add (Direction.NorthNorthEast);
+            }
+
+            if (NorthOpen) {
+                con.Add (Direction.North);
+            }
+
+            if (NorthNorthWestOpen) {
+                con.Add (Direction.NorthNorthWest);
+            }
+
+            return con;
+        }
+
+        private IEnumerable<Direction> GetSouthConnections () {
+            var con = new List<Direction> ();
+
+            if (SouthSouthEastOpen) {
+                con.Add (Direction.SouthSouthEast);
+            }
+
+            if (SouthOpen) {
+                con.Add (Direction.South);
+            }
+
+            if (SouthSouthWestOpen) {
+                con.Add (Direction.SouthSouthWest);
+            }
+
+            return con;
+        }
+
+        private IEnumerable<Direction> GetEastConnections () {
+            var con = new List<Direction> ();
+
+            if (EastNorthEastOpen) {
+                con.Add (Direction.EastNorthEast);
+            }
+
+            if (EastOpen) {
+                con.Add (Direction.East);
+            }
+
+            if (EastSouthEastOpen) {
+                con.Add (Direction.EastSouthEast);
+            }
+
+            return con;
+        }
+
+        private IEnumerable<Direction> GetWestConnections () {
+            var con = new List<Direction> ();
+
+            if (WestSouthWestOpen) {
+                con.Add (Direction.WestSouthWest);
+            }
+
+            if (WestOpen) {
+                con.Add (Direction.West);
+            }
+
+            if (WestNorthWestOpen) {
+                con.Add (Direction.WestNorthWest);
+            }
+
+            return con;
+        }
+
+        public void AddRoom (int x, int y, Room room) {
+            _rooms[x, y] = room;
+        }
+
         public Room GetRoom (int x, int y) => _rooms[x, y];
 
         public void InstantiateRooms () {
-            for (int x = 0; x < 3; x++) {
-                for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < Width; x++) {
+                for (int y = 0; y < Height; y++) {
                     var room = _rooms[x, y];
 
                     if (room != null) {

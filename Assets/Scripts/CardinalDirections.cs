@@ -1,4 +1,4 @@
-namespace Backrooms.Scripts {
+namespace Backrooms.Assets.Scripts {
     public enum Direction {
         North,
         South,

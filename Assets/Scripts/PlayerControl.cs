@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Backrooms.Scripts {
+namespace Backrooms.Assets.Scripts {
     [RequireComponent (typeof (CharacterController))]
     public class PlayerControl : MonoBehaviour {
         public float WalkingSpeed = 7.5f;
