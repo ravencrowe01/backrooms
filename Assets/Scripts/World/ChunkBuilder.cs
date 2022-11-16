@@ -142,6 +142,7 @@ namespace Backrooms.Assets.Scripts.World {
 
         private void FixRoomConnections () {
             // Connect every room to the center room
+
         }
 
         private void AddChunkConnections (IEnumerable<Direction> connections) {
@@ -200,6 +201,15 @@ namespace Backrooms.Assets.Scripts.World {
         #endregion
 
         #region Hallway building
+        /// When a new chunk is built, if there is an older chunk with a hallway connecting to the new chunk,
+        /// check the older chunk's connecting hallway chance. 
+        /// 
+        /// If the chance is below 10%, don't build a hallway.
+        /// 
+        /// Otherwise, roll for a connecting hallway.
+        /// 
+        /// If no older chunk has a hallway, hallway build chance is 10%.
+
         public void AddHallway (Direction start, Direction end) {
             var startCords = _directionToRoomMap[start];
             var endCords = _directionToRoomMap[end];

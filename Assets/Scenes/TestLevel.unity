@@ -360,7 +360,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ChunkBase: {fileID: 1109715629787518053, guid: f0b025f09e1ea42459957b3ecd06e207, type: 3}
   ChunkRoot: {fileID: 1825791191}
-  Player: {fileID: 0}
+  Player: {fileID: 7115408146919900868, guid: 677a81df9eb2b6f47b2fb486c8c035ab, type: 3}
   StartChunk: {fileID: 0}
 --- !u!4 &1863486038
 Transform:

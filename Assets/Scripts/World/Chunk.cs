@@ -11,6 +11,8 @@ namespace Backrooms.Assets.Scripts.World {
         private readonly List<Direction> _connections = new List<Direction> ();
         private Room[,] _rooms;
 
+        public float ConnectingHallwayBuildChance = -1f;
+
         #region North Open States
         public bool NorthNorthEastOpen => _rooms[0, 0].NorthOpen;
         public bool NorthOpen => _rooms[1, 0].NorthOpen;
