@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.Pathfinding {
-    public class AStar {
-        private bool CheckDiagonals = false;
+    public class AStar : IAStar {
+        public bool CheckDiagonals;
 
         private readonly PathNode _start;
         private readonly PathNode _end;
@@ -23,7 +23,7 @@ namespace Backrooms.Assets.Scripts.Pathfinding {
             _end = new PathNode (end);
             _map = map;
 
-            
+
             _closedNodes = new List<PathNode> ();
 
             _openNodes = new List<PathNode> {
@@ -46,7 +46,7 @@ namespace Backrooms.Assets.Scripts.Pathfinding {
             if (_current.Node == _end.Node) {
                 var path = new List<Node> ();
 
-                while(_current != null) {
+                while (_current != null) {
                     path.Add (_current.Node);
 
                     _current = _current.Parent;
@@ -55,7 +55,13 @@ namespace Backrooms.Assets.Scripts.Pathfinding {
                 return path;
             }
 
+            // TODO Check if there are no valid paths to the target.
+
             foreach (var child in GetAdjacentNodes (_current)) {
+                if (IsClosed (child.Node) || IsOpen (child.Node)) {
+                    continue;
+                }
+
                 child.g = _current.g + 1;
                 child.h = Vector2.Distance (child.Node.Position, _end.Position);
 
@@ -65,26 +71,22 @@ namespace Backrooms.Assets.Scripts.Pathfinding {
             return null;
         }
 
-        //private List<PathNode> GenerateChildNodes (PathNode node) {
-        //    var children = new List<PathNode> ();
-
-        //    foreach (var adj in GetAdjacentNodes (_current)) {
-        //        if (_closedNodes.Contains (adj) || adj.Node.Blocking) {
-        //            continue;
-        //        }
-
-        //        children.Add (adj);
-        //    }
-
-        //    return children;
-        //}
-
         private List<PathNode> GetAdjacentNodes (PathNode node) {
-            var adjacent = new List<PathNode> ();
+            var adjacent = new List<PathNode> {
+                new PathNode (_map[(int) (node.Position.x + 1), (int) node.Position.y]),
+                new PathNode (_map[(int) (node.Position.x - 1), (int) node.Position.y]),
+                new PathNode (_map[(int) (node.Position.x), (int) node.Position.y + 1]),
+                new PathNode (_map[(int) (node.Position.x), (int) node.Position.y - 1])
+            };
 
+            if (CheckDiagonals) {
+                adjacent.Add (new PathNode (_map[(int) (node.Position.x + 1), (int) node.Position.y + 1]));
+                adjacent.Add (new PathNode (_map[(int) (node.Position.x - 1), (int) node.Position.y + 1]));
+                adjacent.Add (new PathNode (_map[(int) (node.Position.x + 1), (int) node.Position.y - 1]));
+                adjacent.Add (new PathNode (_map[(int) (node.Position.x - 1), (int) node.Position.y - 1]));
+            }
 
-
-            throw new NotImplementedException ();
+            return adjacent;
         }
 
         private bool IsClosed (Node node) => _closedNodes.Any (p => p.Node == node);

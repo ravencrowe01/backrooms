@@ -1,4 +1,5 @@
 using Backrooms.Assets.Scripts;
+using Backrooms.Assets.Scripts.Pathfinding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,12 +28,15 @@ namespace Backrooms.Assets.Scripts.World {
 
             };
 
+        private readonly IAStar _pathfinder;
+
         private readonly int _width;
         private readonly int _height;
 
         public ChunkRoom[,] Rooms { get; private set; }
 
-        public ChunkBuilder (int width = 3, int height = 3) {
+        public ChunkBuilder (IAStar pathfinder, int width = 3, int height = 3) {
+            _pathfinder = pathfinder;
             _width = width;
             _height = height;
         }
