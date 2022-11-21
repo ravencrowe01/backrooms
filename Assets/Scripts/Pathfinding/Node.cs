@@ -7,5 +7,7 @@ namespace Backrooms.Assets.Scripts.Pathfinding {
         public Vector2 Position;
 
         public bool Blocking;
+
+        public bool Pathway;
     }
 }

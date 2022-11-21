@@ -2,6 +2,6 @@
 
 namespace Backrooms.Assets.Scripts.Pathfinding {
     public interface IAStar {
-        List<Node> Step ();
+        PathfindingStatus Step ();
     }
 }

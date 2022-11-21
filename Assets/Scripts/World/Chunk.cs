@@ -44,7 +44,7 @@ namespace Backrooms.Assets.Scripts.World {
         public void AddConnections (IEnumerable<Direction> connections) => _connections.AddRange (connections);
 
         public void BuildChunk () {
-            var chunkBuilder = new ChunkBuilder ();
+            var chunkBuilder = new ChunkBuilder (null);
 
             chunkBuilder.BuildRooms (_connections);
 
