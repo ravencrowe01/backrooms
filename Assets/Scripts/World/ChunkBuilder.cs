@@ -146,7 +146,35 @@ namespace Backrooms.Assets.Scripts.World {
 
         private void FixRoomConnections () {
             // Connect every room to the center room
+            for(int x = 0; x <= 2; x ++) {
+                for(int y = 0; y <= 2; y ++) {
+                    var room = Rooms[x, y];
 
+                    var adjacent = GetAdjacentRooms(x, y);
+                }
+            }
+        }
+
+        private Dictionary<Vector2, ChunkRoom> GetAdjacentRooms (int x, int y) {
+            var adj = new Dictionary<Vector2, ChunkRoom> ();
+
+            if(x + 1 < _width - 1) {
+                adj.Add (new Vector2(x + 1, y), Rooms[x + 1, y]);
+            }
+
+            if(x - 1 >= 0) {
+               adj.Add (new Vector2(x - 1, y), Rooms[x - 1, y]);
+            }
+
+            if(y + 1 < _height - 1) {
+                adj.Add (new Vector2 (x, y + 1), Rooms[x, y + 1]);
+            }
+
+            if(y - 1 >= 0) {
+                adj.Add (new Vector2 (x, y - 1), Rooms[x, y - 1]);
+            }
+
+            return adj;
         }
 
         private void AddChunkConnections (IEnumerable<Direction> connections) {
