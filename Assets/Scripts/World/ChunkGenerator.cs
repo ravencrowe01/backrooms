@@ -18,7 +18,15 @@ namespace Backrooms.Assets.Scripts.World {
 
         private void Start () {
             BuildChunks ();
-            Instantiate (Player);
+            //Instantiate (Player);
+        }
+
+        private void Update () {
+            if(Input.GetKeyUp(KeyCode.R)) {
+                Destroy(ChunkRoot.transform.GetChild (0).gameObject);
+                _chunks.Clear ();
+                BuildChunks ();
+            }
         }
 
         private void BuildChunks () {

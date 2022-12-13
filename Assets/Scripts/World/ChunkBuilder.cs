@@ -42,18 +42,14 @@ namespace Backrooms.Assets.Scripts.World {
 
         #region Room building
         public void BuildRooms (IEnumerable<Direction> connections) {
-            var count = 0;
-
             do {
                 ConstructRooms ();
 
                 AddChunkConnections (connections);
 
                 FixRoomConnections ();
-                count++;
             }
-            while (ValidateChunk () && count < 10000);
-            Debug.Log (count);
+            while (!ValidateChunk ());
         }
 
         #region Room Generation
@@ -337,12 +333,11 @@ namespace Backrooms.Assets.Scripts.World {
         private bool ValidateChunk () {
             Node[,] nodeMap = BuildNodeMap ();
 
-            var invalidNodes = new List<Vector2> ();
-
             for (int x = 0; x < _width; x++) {
                 for (int y = 0; y < _height; y++) {
-                    if (x != 1 && y != 1) {
+                    if (!(x == 1 && y == 1)) {
                         var pathfinder = new AStar (nodeMap[x, y], nodeMap[1, 1], nodeMap);
+                        pathfinder.CheckEntrances = true;
 
                         PathfindingStatus pathfinding;
 
@@ -352,7 +347,6 @@ namespace Backrooms.Assets.Scripts.World {
                         while (pathfinding == PathfindingStatus.Finding);
 
                         if (pathfinding == PathfindingStatus.Invalid) {
-                            invalidNodes.Add(new Vector2(x, y));
                             return false;
                         }
                     }

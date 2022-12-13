@@ -128,16 +128,16 @@ namespace Backrooms.Assets.Scripts.Pathfinding {
                             if (x != 0 || y != 0) {
                                 var adjCords = node.Position + new Vector2 (x, y);
 
-                                var mapNode = _map[(int) adjCords.x, (int) adjCords.y];
+                                var adjNode = _map[(int) adjCords.x, (int) adjCords.y];
 
                                 var direction = _directionMap[new Vector2 (x, y)];
 
-                                if (IsDirectionTraversable (node, mapNode, direction)) {
+                                if (IsDirectionTraversable (node, adjNode, direction)) {
                                     adjacent.Add (new PathNode {
                                         Parent = node,
-                                        MapNode = mapNode,
+                                        MapNode = adjNode,
                                         g = node.g + 1,
-                                        h = Vector2.Distance (mapNode.Position, _end.Position)
+                                        h = Vector2.Distance (adjNode.Position, _end.Position)
                                     });
                                 }
                             }
@@ -150,12 +150,10 @@ namespace Backrooms.Assets.Scripts.Pathfinding {
         }
 
         private bool IsDirectionTraversable (PathNode node, Node mapNode, Direction direction) {
-            if (IsClosed (mapNode)
-                || IsOpen (mapNode)
-                || mapNode.Blocking
-                || (CheckEntrances && (!node.MapNode.OpenEntrances.Contains (direction)))) {
-                return false;
-            }
+            if (IsClosed (mapNode)) return false;
+            if (IsOpen (mapNode)) return false;
+            if (mapNode.Blocking) return false;
+            if (CheckEntrances && (!node.MapNode.OpenEntrances.Contains (direction))) return false;
 
             return true;
         }
