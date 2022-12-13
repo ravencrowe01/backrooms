@@ -65,15 +65,6 @@ namespace Backrooms.Assets.Scripts.World {
                     Rooms[x, y] = ConstructRoom (x, y);
                 }
             }
-
-            ChunkRoom RoomToChunkRoom(Room room) {
-                return new ChunkRoom () {
-                    NorthOpen = room.NorthOpen,
-                    SouthOpen = room.SouthOpen,
-                    EastOpen = room.EastOpen,
-                    WestOpen = room.WestOpen
-                };
-            }
         }
 
         private ChunkRoom ConstructRoom (int x, int y) {
