@@ -53,5 +53,8 @@ namespace Backrooms.Assets.Scripts.Databases {
 
             return temp[Random.Range (0, temp.Count ())];
         }
+
+        public Room GetRoomWithOpenSides (bool north = false, bool south = false, bool east = false, bool west = false)
+            => _rooms.Values.Where (r => r.NorthOpen == north && r.SouthOpen == south && r.EastOpen == east && r.WestOpen == west).First ();
     }
 }

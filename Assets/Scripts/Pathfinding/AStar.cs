@@ -31,6 +31,7 @@ namespace Backrooms.Assets.Scripts.Pathfinding {
         private readonly PathNode _end;
         private readonly Node[,] _map;
 
+        public Vector2 Current => _current.MapNode.Position;
         private PathNode _current;
 
         private readonly List<PathNode> _closedNodes;

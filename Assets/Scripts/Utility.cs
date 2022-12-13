@@ -5,7 +5,7 @@ namespace Backrooms.Assets.Scripts {
         public static Direction GetOppositeSide (Direction direction) => direction switch {
             Direction.North => Direction.South,
             Direction.South => Direction.North,
-            Direction.East => Direction.East,
+            Direction.East => Direction.West,
             Direction.West => Direction.East,
             Direction.NorthEast => Direction.SouthWest,
             Direction.NorthWest => Direction.SouthEast,

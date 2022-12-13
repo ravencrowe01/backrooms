@@ -21,8 +21,8 @@ namespace Backrooms.Assets.Scripts {
         private void Start () {
             CharacterController = GetComponent<CharacterController> ();
 
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            //Cursor.lockState = CursorLockMode.Locked;
+            //Cursor.visible = false;
         }
 
         private void Update () {

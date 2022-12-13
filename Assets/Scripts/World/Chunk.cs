@@ -44,15 +44,17 @@ namespace Backrooms.Assets.Scripts.World {
         public void AddConnections (IEnumerable<Direction> connections) => _connections.AddRange (connections);
 
         public void BuildChunk () {
-            var chunkBuilder = new ChunkBuilder (null);
+            var chunkBuilder = new ChunkBuilder ();
 
             chunkBuilder.BuildRooms (_connections);
 
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
-                    var room = chunkBuilder.Rooms[x, y];
+                    if (_rooms[x, y] == null) {
+                        var room = chunkBuilder.Rooms[x, y];
 
-                    _rooms[x, y] = RoomDatabase.Instance.GetRandomRoomWithOpenSides (room.GetOpenSides ());
+                        _rooms[x, y] = RoomDatabase.Instance.GetRoomWithOpenSides (room.NorthOpen, room.SouthOpen, room.EastOpen, room.WestOpen);
+                    }
                 }
             }
         }

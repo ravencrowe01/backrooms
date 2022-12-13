@@ -1,4 +1,4 @@
-using Backrooms.Assets.Scripts;
+using Backrooms.Assets.Scripts.Databases;
 using Backrooms.Assets.Scripts.Pathfinding;
 using System;
 using System.Collections.Generic;
@@ -35,22 +35,28 @@ namespace Backrooms.Assets.Scripts.World {
 
         public ChunkRoom[,] Rooms { get; private set; }
 
-        public ChunkBuilder (IAStar pathfinder, int width = 3, int height = 3) {
-            _pathfinder = pathfinder;
+        public ChunkBuilder (int width = 3, int height = 3) {
             _width = width;
             _height = height;
         }
 
         #region Room building
         public void BuildRooms (IEnumerable<Direction> connections) {
-            ConstructRooms ();
+            var count = 0;
 
-            AddChunkConnections (connections);
+            do {
+                ConstructRooms ();
 
-            // This is hard and I'll do it later
-            FixRoomConnections ();
+                AddChunkConnections (connections);
+
+                FixRoomConnections ();
+                count++;
+            }
+            while (ValidateChunk () && count < 10000);
+            Debug.Log (count);
         }
 
+        #region Room Generation
         private void ConstructRooms () {
             Rooms = new ChunkRoom[_width, _height];
 
@@ -58,6 +64,15 @@ namespace Backrooms.Assets.Scripts.World {
                 for (int y = 0; y <= 2; y++) {
                     Rooms[x, y] = ConstructRoom (x, y);
                 }
+            }
+
+            ChunkRoom RoomToChunkRoom(Room room) {
+                return new ChunkRoom () {
+                    NorthOpen = room.NorthOpen,
+                    SouthOpen = room.SouthOpen,
+                    EastOpen = room.EastOpen,
+                    WestOpen = room.WestOpen
+                };
             }
         }
 
@@ -143,14 +158,32 @@ namespace Backrooms.Assets.Scripts.World {
 
             return Random.Range (min, Math.Min (4, max));
         }
+        #endregion
 
+        #region Room Connection Fixing
+        /// <summary>
+        /// Fix connections between rooms.
+        /// </summary>
         private void FixRoomConnections () {
-            // Connect every room to the center room
-            for(int x = 0; x <= 2; x ++) {
-                for(int y = 0; y <= 2; y ++) {
+            for (int x = 0; x <= 2; x++) {
+                for (int y = 0; y <= 2; y++) {
                     var room = Rooms[x, y];
 
-                    var adjacent = GetAdjacentRooms(x, y);
+                    var adjacent = GetAdjacentRooms (x, y);
+
+                    foreach (var key in adjacent.Keys) {
+                        var direction = GetAdjacentDirection (new Vector2 (x, y), key);
+
+                        var oppDir = Utility.GetOppositeSide (direction);
+
+                        if (room.OpenSides.Contains (direction) != adjacent[key].OpenSides.Contains (oppDir)) {
+                            var roll = Random.Range (0, 2);
+
+                            room.SetSideState (direction, roll == 1);
+
+                            Rooms[(int) key.x, (int) key.y].SetSideState (oppDir, roll == 1);
+                        }
+                    }
                 }
             }
         }
@@ -158,24 +191,45 @@ namespace Backrooms.Assets.Scripts.World {
         private Dictionary<Vector2, ChunkRoom> GetAdjacentRooms (int x, int y) {
             var adj = new Dictionary<Vector2, ChunkRoom> ();
 
-            if(x + 1 < _width - 1) {
-                adj.Add (new Vector2(x + 1, y), Rooms[x + 1, y]);
+            if (x + 1 < _width) {
+                adj.Add (new Vector2 (x + 1, y), Rooms[x + 1, y]);
             }
 
-            if(x - 1 >= 0) {
-               adj.Add (new Vector2(x - 1, y), Rooms[x - 1, y]);
+            if (x - 1 >= 0) {
+                adj.Add (new Vector2 (x - 1, y), Rooms[x - 1, y]);
             }
 
-            if(y + 1 < _height - 1) {
+            if (y + 1 < _height) {
                 adj.Add (new Vector2 (x, y + 1), Rooms[x, y + 1]);
             }
 
-            if(y - 1 >= 0) {
+            if (y - 1 >= 0) {
                 adj.Add (new Vector2 (x, y - 1), Rooms[x, y - 1]);
             }
 
             return adj;
         }
+
+        private Direction GetAdjacentDirection (Vector2 origin, Vector2 target) {
+            var dirVec = target - origin;
+
+            dirVec = new Vector2 (Mathf.Clamp (dirVec.x, -1, 1), Mathf.Clamp (dirVec.y, -1, 1));
+
+            if (dirVec == Vector2.down) {
+                return Direction.North;
+            }
+
+            if (dirVec == Vector2.up) {
+                return Direction.South;
+            }
+
+            if (dirVec == Vector2.right) {
+                return Direction.East;
+            }
+
+            return Direction.West;
+        }
+        #endregion
 
         private void AddChunkConnections (IEnumerable<Direction> connections) {
             foreach (var con in connections) {
@@ -289,13 +343,60 @@ namespace Backrooms.Assets.Scripts.World {
         }
         #endregion
 
-        public class ChunkRoom {
-            public bool NorthOpen { get; private set; }
-            public bool SouthOpen { get; private set; }
-            public bool EastOpen { get; private set; }
-            public bool WestOpen { get; private set; }
+        private bool ValidateChunk () {
+            Node[,] nodeMap = BuildNodeMap ();
 
-            public IEnumerable<Direction> GetOpenSides () {
+            var invalidNodes = new List<Vector2> ();
+
+            for (int x = 0; x < _width; x++) {
+                for (int y = 0; y < _height; y++) {
+                    if (x != 1 && y != 1) {
+                        var pathfinder = new AStar (nodeMap[x, y], nodeMap[1, 1], nodeMap);
+
+                        PathfindingStatus pathfinding;
+
+                        do {
+                            pathfinding = pathfinder.Step ();
+                        }
+                        while (pathfinding == PathfindingStatus.Finding);
+
+                        if (pathfinding == PathfindingStatus.Invalid) {
+                            invalidNodes.Add(new Vector2(x, y));
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private Node[,] BuildNodeMap () {
+            var nodeMap = new Node[3, 3];
+
+            for (int x = 0; x < _width; x++) {
+                for (int y = 0; y < _height; y++) {
+                    nodeMap[x, y] = new Node {
+                        Cost = 1,
+                        Position = new Vector2 (x, y),
+                        OpenEntrances = Rooms[x, y].OpenSides,
+                        Blocking = false
+                    };
+                }
+            }
+
+            return nodeMap;
+        }
+
+        public class ChunkRoom {
+            public bool NorthOpen { get; /*private*/ set; }
+            public bool SouthOpen { get; /*private*/ set; }
+            public bool EastOpen { get; /*private*/ set; }
+            public bool WestOpen { get; /*private*/ set; }
+
+            public List<Direction> OpenSides => GetOpenSides ();
+
+            private List<Direction> GetOpenSides () {
                 var sides = new List<Direction> ();
 
                 if (NorthOpen) {

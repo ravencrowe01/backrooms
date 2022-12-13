@@ -17,32 +17,32 @@ namespace Backrooms.Assets.Scripts.World {
         private Dictionary<Vector3, Chunk> _chunks = new Dictionary<Vector3, Chunk> ();
 
         private void Start () {
-            //BuildChunks ();
-            //Instantiate (Player);
+            BuildChunks ();
+            Instantiate (Player);
         }
 
         private void BuildChunks () {
-            for (int chunkX = 0; chunkX < 3; chunkX++) {
-                for (int chunkZ = 0; chunkZ < 3; chunkZ++) {
+            for (int chunkX = 0; chunkX < 1; chunkX++) {
+                for (int chunkZ = 0; chunkZ < 1; chunkZ++) {
                     var chunk = Instantiate (ChunkBase, ChunkRoot.transform);
 
-                    if (chunkX == 0 && chunkZ == 0) {
-                        chunk.AddRoom (0, 0, RoomDatabase.Instance.GetRoomByID (12));
-                        chunk.AddRoom (1, 0, RoomDatabase.Instance.GetRoomByID (15));
-                        chunk.AddRoom (2, 0, RoomDatabase.Instance.GetRoomByID (13));
-                        chunk.AddRoom (0, 1, RoomDatabase.Instance.GetRoomByID (15));
-                        chunk.AddRoom (1, 1, RoomDatabase.Instance.GetRoomByID (1));
-                        chunk.AddRoom (2, 1, RoomDatabase.Instance.GetRoomByID (15));
-                        chunk.AddRoom (0, 2, RoomDatabase.Instance.GetRoomByID (11));
-                        chunk.AddRoom (1, 2, RoomDatabase.Instance.GetRoomByID (15));
-                        chunk.AddRoom (2, 2, RoomDatabase.Instance.GetRoomByID (14));
+                    //if (chunkX == 0 && chunkZ == 0) {
+                    //    chunk.AddRoom (0, 0, RoomDatabase.Instance.GetRoomByID (12));
+                    //    chunk.AddRoom (1, 0, RoomDatabase.Instance.GetRoomByID (15));
+                    //    chunk.AddRoom (2, 0, RoomDatabase.Instance.GetRoomByID (13));
+                    //    chunk.AddRoom (0, 1, RoomDatabase.Instance.GetRoomByID (15));
+                    //    chunk.AddRoom (1, 1, RoomDatabase.Instance.GetRoomByID (1));
+                    //    chunk.AddRoom (2, 1, RoomDatabase.Instance.GetRoomByID (15));
+                    //    chunk.AddRoom (0, 2, RoomDatabase.Instance.GetRoomByID (11));
+                    //    chunk.AddRoom (1, 2, RoomDatabase.Instance.GetRoomByID (15));
+                    //    chunk.AddRoom (2, 2, RoomDatabase.Instance.GetRoomByID (14));
 
-                        chunk.transform.position = new Vector3 ();
-                        chunk.InstantiateRooms ();
+                    //    chunk.transform.position = new Vector3 ();
+                    //    chunk.InstantiateRooms ();
 
-                        _chunks.Add (new Vector3 (), chunk);
-                        continue;
-                    }
+                    //    _chunks.Add (new Vector3 (), chunk);
+                    //    continue;
+                    //}
 
                     var position = new Vector3 (chunkX, 0, chunkZ);
 
