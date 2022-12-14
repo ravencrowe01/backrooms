@@ -8,6 +8,8 @@ namespace Backrooms.Assets.Scripts.World {
         public int Height = 3;
         public int Width = 3;
 
+        public Vector2Int CenterCords = new Vector2Int (1, 1);
+
         private readonly List<Direction> _connections = new List<Direction> ();
         private Room[,] _rooms;
 
@@ -44,7 +46,7 @@ namespace Backrooms.Assets.Scripts.World {
         public void AddConnections (IEnumerable<Direction> connections) => _connections.AddRange (connections);
 
         public void BuildChunk () {
-            var chunkBuilder = new ChunkBuilder ();
+            var chunkBuilder = new ChunkBuilder (new Vector2Int(Width, Height), CenterCords);
 
             chunkBuilder.BuildRooms (_connections);
 

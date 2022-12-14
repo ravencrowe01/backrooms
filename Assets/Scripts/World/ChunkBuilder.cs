@@ -1,8 +1,6 @@
-using Backrooms.Assets.Scripts.Databases;
 using Backrooms.Assets.Scripts.Pathfinding;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -26,18 +24,17 @@ namespace Backrooms.Assets.Scripts.World {
                 {Direction.WestNorthWest, new Vector2 (2, 0) },
                 {Direction.NorthNorthWest, new Vector2 (2, 0) }
 
-            };
+        };
 
-        private readonly IAStar _pathfinder;
+        private readonly Vector2Int _dimensions;
 
-        private readonly int _width;
-        private readonly int _height;
+        private readonly Vector2 _center;
 
         public ChunkRoom[,] Rooms { get; private set; }
 
-        public ChunkBuilder (int width = 3, int height = 3) {
-            _width = width;
-            _height = height;
+        public ChunkBuilder (Vector2Int dimensions, Vector2 center) {
+            _dimensions = dimensions;
+            _center = center;
         }
 
         #region Room building
@@ -49,12 +46,12 @@ namespace Backrooms.Assets.Scripts.World {
 
                 FixRoomConnections ();
             }
-            while (!ValidateChunk ());
+            while (!IsChunkValid ());
         }
 
         #region Room Generation
         private void ConstructRooms () {
-            Rooms = new ChunkRoom[_width, _height];
+            Rooms = new ChunkRoom[_dimensions.x, _dimensions.y];
 
             for (int x = 0; x <= 2; x++) {
                 for (int y = 0; y <= 2; y++) {
@@ -64,51 +61,18 @@ namespace Backrooms.Assets.Scripts.World {
         }
 
         private ChunkRoom ConstructRoom (int x, int y) {
-            var directions = new List<Direction> { Direction.North, Direction.South, Direction.East, Direction.West };
             var room = new ChunkRoom ();
 
-            //The center room needs to have at least two open sides.
-            if (x == 1 && y == 1) {
-                AddMinimumSides (room, directions, directions, 2);
-            }
-            // The outer rooms need to have at least one open side.
-            else {
-                var minOpen = GetMinmumOpenSides (x, y);
-                AddMinimumSides (room, directions, minOpen, 1);
-            }
+            var available = GetOpenableSides (x, y);
 
-            var openCount = GetRandomOpenCount (x, y, directions.Count, 0);
+            var open = ChooseOpenSides (available, (x == 1 && y == 1 ? 2 : 1));
 
-            AddOpenSides (room, directions, openCount);
+            AddOpenSides (room, open);
 
             return room;
         }
 
-        private void AddOpenSides (ChunkRoom room, IList<Direction> directions, int amount) {
-            while (amount > 0) {
-                var chosen = directions[Random.Range (0, directions.Count)];
-
-                room.SetSideState (chosen, true);
-
-                directions.Remove (chosen);
-
-                amount--;
-            }
-        }
-
-        private void AddMinimumSides (ChunkRoom room, IList<Direction> directions, IList<Direction> minimum, int amount) {
-            var temp = new List<Direction> (minimum);
-
-            AddOpenSides (room, minimum, amount);
-
-            temp.AddRange (minimum);
-
-            var open = temp.Distinct ().ToList ();
-
-            open.ForEach (d => directions.Remove (d));
-        }
-
-        private IList<Direction> GetMinmumOpenSides (int x, int y) {
+        private IList<Direction> GetOpenableSides (int x, int y) {
             var sides = new List<Direction> ();
 
             switch (x) {
@@ -138,12 +102,24 @@ namespace Backrooms.Assets.Scripts.World {
             return sides;
         }
 
-        private int GetRandomOpenCount (int x, int y, int max, int min = 1) {
-            if (x == 1 && y == 1) {
-                return Random.Range (min, Math.Min (3, max));
+        private IList<Direction> ChooseOpenSides (IList<Direction> available, int amount = 1) {
+            var sides = new List<Direction> ();
+
+            for (; amount > 0; amount--) {
+                var roll = Random.Range (0, available.Count);
+
+                sides.Add (available[roll]);
+
+                available.RemoveAt (roll);
             }
 
-            return Random.Range (min, Math.Min (4, max));
+            return sides;
+        }
+
+        private void AddOpenSides (ChunkRoom room, IList<Direction> open) {
+            foreach (var side in open) {
+                room.SetSideState (side, true);
+            }
         }
         #endregion
 
@@ -178,7 +154,7 @@ namespace Backrooms.Assets.Scripts.World {
         private Dictionary<Vector2, ChunkRoom> GetAdjacentRooms (int x, int y) {
             var adj = new Dictionary<Vector2, ChunkRoom> ();
 
-            if (x + 1 < _width) {
+            if (x + 1 < _dimensions.x) {
                 adj.Add (new Vector2 (x + 1, y), Rooms[x + 1, y]);
             }
 
@@ -186,7 +162,7 @@ namespace Backrooms.Assets.Scripts.World {
                 adj.Add (new Vector2 (x - 1, y), Rooms[x - 1, y]);
             }
 
-            if (y + 1 < _height) {
+            if (y + 1 < _dimensions.y) {
                 adj.Add (new Vector2 (x, y + 1), Rooms[x, y + 1]);
             }
 
@@ -330,23 +306,13 @@ namespace Backrooms.Assets.Scripts.World {
         }
         #endregion
 
-        private bool ValidateChunk () {
+        private bool IsChunkValid () {
             Node[,] nodeMap = BuildNodeMap ();
 
-            for (int x = 0; x < _width; x++) {
-                for (int y = 0; y < _height; y++) {
+            for (int x = 0; x < _dimensions.x; x++) {
+                for (int y = 0; y < _dimensions.y; y++) {
                     if (!(x == 1 && y == 1)) {
-                        var pathfinder = new AStar (nodeMap[x, y], nodeMap[1, 1], nodeMap);
-                        pathfinder.CheckEntrances = true;
-
-                        PathfindingStatus pathfinding;
-
-                        do {
-                            pathfinding = pathfinder.Step ();
-                        }
-                        while (pathfinding == PathfindingStatus.Finding);
-
-                        if (pathfinding == PathfindingStatus.Invalid) {
+                        if (!ValidateChunk (nodeMap, x, y)) {
                             return false;
                         }
                     }
@@ -356,11 +322,30 @@ namespace Backrooms.Assets.Scripts.World {
             return true;
         }
 
+        private bool ValidateChunk (Node[,] nodeMap, int x, int y) {
+            var pathfinder = new AStar (nodeMap[x, y], nodeMap[(int) _center.x, (int) _center.y], nodeMap) {
+                CheckEntrances = true
+            };
+
+            PathfindingStatus pathfinding;
+
+            do {
+                pathfinding = pathfinder.Step ();
+            }
+            while (pathfinding == PathfindingStatus.Finding);
+
+            if (pathfinding == PathfindingStatus.Invalid) {
+                return false;
+            }
+
+            return true;
+        }
+
         private Node[,] BuildNodeMap () {
             var nodeMap = new Node[3, 3];
 
-            for (int x = 0; x < _width; x++) {
-                for (int y = 0; y < _height; y++) {
+            for (int x = 0; x < _dimensions.x; x++) {
+                for (int y = 0; y < _dimensions.y; y++) {
                     nodeMap[x, y] = new Node {
                         Cost = 1,
                         Position = new Vector2 (x, y),

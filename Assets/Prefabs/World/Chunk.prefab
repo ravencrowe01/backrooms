@@ -169,6 +169,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Height: 3
   Width: 3
+  CenterCords: {x: 0, y: 0}
+  ConnectingHallwayBuildChance: -1
 --- !u!114 &674151979086931037
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183,6 +185,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Height: 3
   Width: 3
+  CenterCords: {x: 1, y: 1}
+  ConnectingHallwayBuildChance: -1
 --- !u!1 &4319253293725643112
 GameObject:
   m_ObjectHideFlags: 0
