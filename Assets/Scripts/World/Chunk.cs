@@ -13,6 +13,7 @@ namespace Backrooms.Assets.Scripts.World {
         private readonly List<Direction> _connections = new List<Direction> ();
         private Room[,] _rooms;
 
+        public bool BuildRandomHallways = false;
         public float ConnectingHallwayBuildChance = -1f;
 
         #region North Open States
@@ -46,7 +47,7 @@ namespace Backrooms.Assets.Scripts.World {
         public void AddConnections (IEnumerable<Direction> connections) => _connections.AddRange (connections);
 
         public void BuildChunk () {
-            var chunkBuilder = new ChunkBuilder (new Vector2Int(Width, Height), CenterCords);
+            var chunkBuilder = new ChunkBuilder (new Vector2Int(Width, Height), CenterCords, null);
 
             chunkBuilder.BuildRooms (_connections);
 

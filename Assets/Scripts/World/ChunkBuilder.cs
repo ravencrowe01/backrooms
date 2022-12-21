@@ -30,11 +30,16 @@ namespace Backrooms.Assets.Scripts.World {
 
         private readonly Vector2 _center;
 
+        private readonly bool _buildRandomHallway;
+
+        private readonly IList<Vector2Int> _hallwayConnections;
+
         public ChunkRoom[,] Rooms { get; private set; }
 
-        public ChunkBuilder (Vector2Int dimensions, Vector2 center) {
+        public ChunkBuilder (Vector2Int dimensions, Vector2 center, IList<Vector2Int> hallways) {
             _dimensions = dimensions;
             _center = center;
+            _hallwayConnections = hallways;
         }
 
         #region Room building
@@ -102,7 +107,7 @@ namespace Backrooms.Assets.Scripts.World {
             return sides;
         }
 
-        private IList<Direction> ChooseOpenSides (IList<Direction> available, int amount = 1) {
+        private IList<Direction> ChooseOpenSides (IList<Direction> available, int amount) {
             var sides = new List<Direction> ();
 
             for (; amount > 0; amount--) {
