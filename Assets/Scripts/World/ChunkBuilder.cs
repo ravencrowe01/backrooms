@@ -6,7 +6,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Backrooms.Assets.Scripts.World {
-    public class ChunkBuilder {
+    public class ChunkBuilder : IChunkBuilder {
         private readonly Dictionary<Direction, Vector2> _directionToRoomMap = new Dictionary<Direction, Vector2> () {
                 {Direction.North, new Vector2 (1, 0) },
                 {Direction.NorthEast, new Vector2 (0, 0) },
@@ -61,7 +61,7 @@ namespace Backrooms.Assets.Scripts.World {
             foreach (var dir in connections.Keys) {
                 var roll = Random.Range (0f, 1f);
 
-                if(roll <= connections[dir] && !_hallwayConnections.Contains(Utility.GetOppositeSide(dir))) {
+                if (roll <= connections[dir] && !_hallwayConnections.Contains (Utility.GetOppositeSide (dir))) {
                     _hallwayConnections.Add (dir);
 
                     var d = HallwayBuildChances.Keys.Contains (dir) ? dir : Utility.GetOppositeSide (dir);
@@ -73,7 +73,7 @@ namespace Backrooms.Assets.Scripts.World {
 
         #region Room building
         public void BuildRooms () {
-            if(!_built) {
+            if (!_built) {
                 do {
                     ConstructRooms ();
 
@@ -260,7 +260,7 @@ namespace Backrooms.Assets.Scripts.World {
 
             temp.AddRange (_hallwayConnections);
 
-            foreach (var con in temp.Distinct()) {
+            foreach (var con in temp.Distinct ()) {
                 switch (con) {
                     #region North
                     case Direction.NorthNorthEast:
@@ -330,7 +330,7 @@ namespace Backrooms.Assets.Scripts.World {
             var startCords = _directionToRoomMap[start];
             var endCords = _directionToRoomMap[end];
 
-            switch (Utility.GetOppositeSide(start)) {
+            switch (Utility.GetOppositeSide (start)) {
                 case Direction.North:
                 case Direction.South:
                     BuildNorthSouthHallway (startCords, endCords);
