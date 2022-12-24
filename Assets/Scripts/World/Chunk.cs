@@ -1,4 +1,3 @@
-using Backrooms.Assets.Scripts;
 using Backrooms.Assets.Scripts.Databases;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,13 +7,11 @@ namespace Backrooms.Assets.Scripts.World {
         public int Height = 3;
         public int Width = 3;
 
-        public Vector2Int CenterCords = new Vector2Int (1, 1);
-
-        private readonly List<Direction> _connections = new List<Direction> ();
         private Room[,] _rooms;
+        private readonly List<Direction> _connections = new List<Direction> ();
+        private readonly Dictionary<Direction, float> _hallwayConnections = new Dictionary<Direction, float> ();
 
-        public bool BuildRandomHallways = false;
-        public float ConnectingHallwayBuildChance = -1f;
+        public float ConnectingHallwayBuildChance { get; private set; } = -1f;
 
         #region North Open States
         public bool NorthNorthEastOpen => _rooms[0, 0].NorthOpen;
@@ -46,17 +43,32 @@ namespace Backrooms.Assets.Scripts.World {
 
         public void AddConnections (IEnumerable<Direction> connections) => _connections.AddRange (connections);
 
-        public void BuildChunk () {
-            var chunkBuilder = new ChunkBuilder (new Vector2Int(Width, Height), CenterCords, null);
+        public void AddHallwayConnections (IDictionary<Direction, float> connections) {
+            foreach (var dir in connections.Keys) {
+                if(!_hallwayConnections.ContainsKey(dir)) {
+                    _hallwayConnections.Add (dir, connections[dir]);
+                }
+                else {
+                    _hallwayConnections[dir] = connections[dir];
+                }
+            }
+        }
 
-            chunkBuilder.BuildRooms (_connections);
+        public void BuildChunk () {
+            var chunkBuilder = new ChunkBuilder ();
+
+            chunkBuilder.AddConnections (_connections);
+
+            chunkBuilder.AddHallwayConnections (_hallwayConnections);
+
+            chunkBuilder.BuildRooms ();
 
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
                     if (_rooms[x, y] == null) {
                         var room = chunkBuilder.Rooms[x, y];
 
-                        _rooms[x, y] = RoomDatabase.Instance.GetRoomWithOpenSides (room.NorthOpen, room.SouthOpen, room.EastOpen, room.WestOpen);
+                        _rooms[x, y] = RoomDatabase.Instance.GetRoomWithOpenSides (room.North, room.South, room.East, room.West);
                     }
                 }
             }

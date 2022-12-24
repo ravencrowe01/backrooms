@@ -1,11 +1,12 @@
 using Backrooms.Assets.Scripts.Pathfinding;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Backrooms.Assets.Scripts.World {
-    public class ChunkBuilder {
+    public class ChunkBuilder : IChunkBuilder {
         private readonly Dictionary<Direction, Vector2> _directionToRoomMap = new Dictionary<Direction, Vector2> () {
                 {Direction.North, new Vector2 (1, 0) },
                 {Direction.NorthEast, new Vector2 (0, 0) },
@@ -23,61 +24,128 @@ namespace Backrooms.Assets.Scripts.World {
                 {Direction.NorthWest, new Vector2 (2, 0) },
                 {Direction.WestNorthWest, new Vector2 (2, 0) },
                 {Direction.NorthNorthWest, new Vector2 (2, 0) }
-
         };
 
-        private readonly Vector2Int _dimensions;
+        public RoomConfig[,] Rooms { get; private set; }
 
-        private readonly Vector2 _center;
+        public Dictionary<Direction, float> HallwayBuildChances { get; private set; } = new Dictionary<Direction, float> {
+            {Direction.NorthNorthEast, 0 },
+            {Direction.North, 0 },
+            {Direction.NorthNorthWest, 0 },
+            {Direction.EastNorthEast, 0 },
+            {Direction.East, 0 },
+            {Direction.EastSouthEast, 0 }
+        };
 
-        private readonly bool _buildRandomHallway;
+        private ChunkRoom[,] _rooms;
 
-        private readonly IList<Vector2Int> _hallwayConnections;
+        private readonly IAStar _pathfinder;
 
-        public ChunkRoom[,] Rooms { get; private set; }
+        private readonly int _width;
+        private readonly int _height;
 
-        public ChunkBuilder (Vector2Int dimensions, Vector2 center, IList<Vector2Int> hallways) {
-            _dimensions = dimensions;
-            _center = center;
-            _hallwayConnections = hallways;
+        private List<Direction> _connections = new List<Direction> ();
+
+        private List<Direction> _hallwayConnections = new List<Direction> ();
+
+        private bool _built = false;
+
+        public ChunkBuilder (int width = 3, int height = 3) {
+            _width = width;
+            _height = height;
+        }
+
+        public void AddConnections (IEnumerable<Direction> connections) => _connections.AddRange (connections);
+
+        public void AddHallwayConnections (IDictionary<Direction, float> connections) {
+            foreach (var dir in connections.Keys) {
+                var roll = Random.Range (0f, 1f);
+
+                if (roll <= connections[dir] && !_hallwayConnections.Contains (Utility.GetOppositeSide (dir))) {
+                    _hallwayConnections.Add (dir);
+
+                    var d = HallwayBuildChances.Keys.Contains (dir) ? dir : Utility.GetOppositeSide (dir);
+
+                    HallwayBuildChances[d] = connections[dir];
+                }
+            }
         }
 
         #region Room building
-        public void BuildRooms (IEnumerable<Direction> connections) {
-            do {
-                ConstructRooms ();
+        public void BuildRooms () {
+            if (!_built) {
+                do {
+                    ConstructRooms ();
 
-                AddChunkConnections (connections);
+                    AddChunkConnections ();
 
-                FixRoomConnections ();
+                    BuildHallways ();
+
+                    FixRoomConnections ();
+                }
+                while (!ValidateChunk ());
+
+                _built = true;
             }
-            while (!IsChunkValid ());
         }
 
         #region Room Generation
         private void ConstructRooms () {
-            Rooms = new ChunkRoom[_dimensions.x, _dimensions.y];
+            _rooms = new ChunkRoom[_width, _height];
 
             for (int x = 0; x <= 2; x++) {
                 for (int y = 0; y <= 2; y++) {
-                    Rooms[x, y] = ConstructRoom (x, y);
+                    _rooms[x, y] = ConstructRoom (x, y);
                 }
             }
         }
 
         private ChunkRoom ConstructRoom (int x, int y) {
+            var directions = new List<Direction> { Direction.North, Direction.South, Direction.East, Direction.West };
             var room = new ChunkRoom ();
 
-            var available = GetOpenableSides (x, y);
+            //The center room needs to have at least two open sides.
+            if (x == 1 && y == 1) {
+                AddMinimumSides (room, directions, directions, 2);
+            }
+            // The outer rooms need to have at least one open side.
+            else {
+                var minOpen = GetMinmumOpenSides (x, y);
+                AddMinimumSides (room, directions, minOpen, 1);
+            }
 
-            var open = ChooseOpenSides (available, (x == 1 && y == 1 ? 2 : 1));
+            var openCount = GetRandomOpenCount (x, y, directions.Count, 0);
 
-            AddOpenSides (room, open);
+            AddOpenSides (room, directions, openCount);
 
             return room;
         }
 
-        private IList<Direction> GetOpenableSides (int x, int y) {
+        private void AddOpenSides (ChunkRoom room, IList<Direction> directions, int amount) {
+            while (amount > 0) {
+                var chosen = directions[Random.Range (0, directions.Count)];
+
+                room.SetSideState (chosen, true);
+
+                directions.Remove (chosen);
+
+                amount--;
+            }
+        }
+
+        private void AddMinimumSides (ChunkRoom room, IList<Direction> directions, IList<Direction> minimum, int amount) {
+            var temp = new List<Direction> (minimum);
+
+            AddOpenSides (room, minimum, amount);
+
+            temp.AddRange (minimum);
+
+            var open = temp.Distinct ().ToList ();
+
+            open.ForEach (d => directions.Remove (d));
+        }
+
+        private IList<Direction> GetMinmumOpenSides (int x, int y) {
             var sides = new List<Direction> ();
 
             switch (x) {
@@ -107,24 +175,12 @@ namespace Backrooms.Assets.Scripts.World {
             return sides;
         }
 
-        private IList<Direction> ChooseOpenSides (IList<Direction> available, int amount) {
-            var sides = new List<Direction> ();
-
-            for (; amount > 0; amount--) {
-                var roll = Random.Range (0, available.Count);
-
-                sides.Add (available[roll]);
-
-                available.RemoveAt (roll);
+        private int GetRandomOpenCount (int x, int y, int max, int min = 1) {
+            if (x == 1 && y == 1) {
+                return Random.Range (min, Math.Min (3, max));
             }
 
-            return sides;
-        }
-
-        private void AddOpenSides (ChunkRoom room, IList<Direction> open) {
-            foreach (var side in open) {
-                room.SetSideState (side, true);
-            }
+            return Random.Range (min, Math.Min (4, max));
         }
         #endregion
 
@@ -135,7 +191,7 @@ namespace Backrooms.Assets.Scripts.World {
         private void FixRoomConnections () {
             for (int x = 0; x <= 2; x++) {
                 for (int y = 0; y <= 2; y++) {
-                    var room = Rooms[x, y];
+                    var room = _rooms[x, y];
 
                     var adjacent = GetAdjacentRooms (x, y);
 
@@ -149,7 +205,7 @@ namespace Backrooms.Assets.Scripts.World {
 
                             room.SetSideState (direction, roll == 1);
 
-                            Rooms[(int) key.x, (int) key.y].SetSideState (oppDir, roll == 1);
+                            _rooms[(int) key.x, (int) key.y].SetSideState (oppDir, roll == 1);
                         }
                     }
                 }
@@ -159,20 +215,20 @@ namespace Backrooms.Assets.Scripts.World {
         private Dictionary<Vector2, ChunkRoom> GetAdjacentRooms (int x, int y) {
             var adj = new Dictionary<Vector2, ChunkRoom> ();
 
-            if (x + 1 < _dimensions.x) {
-                adj.Add (new Vector2 (x + 1, y), Rooms[x + 1, y]);
+            if (x + 1 < _width) {
+                adj.Add (new Vector2 (x + 1, y), _rooms[x + 1, y]);
             }
 
             if (x - 1 >= 0) {
-                adj.Add (new Vector2 (x - 1, y), Rooms[x - 1, y]);
+                adj.Add (new Vector2 (x - 1, y), _rooms[x - 1, y]);
             }
 
-            if (y + 1 < _dimensions.y) {
-                adj.Add (new Vector2 (x, y + 1), Rooms[x, y + 1]);
+            if (y + 1 < _height) {
+                adj.Add (new Vector2 (x, y + 1), _rooms[x, y + 1]);
             }
 
             if (y - 1 >= 0) {
-                adj.Add (new Vector2 (x, y - 1), Rooms[x, y - 1]);
+                adj.Add (new Vector2 (x, y - 1), _rooms[x, y - 1]);
             }
 
             return adj;
@@ -199,54 +255,58 @@ namespace Backrooms.Assets.Scripts.World {
         }
         #endregion
 
-        private void AddChunkConnections (IEnumerable<Direction> connections) {
-            foreach (var con in connections) {
+        private void AddChunkConnections () {
+            var temp = new List<Direction> (_connections);
+
+            temp.AddRange (_hallwayConnections);
+
+            foreach (var con in temp.Distinct ()) {
                 switch (con) {
                     #region North
                     case Direction.NorthNorthEast:
-                        Rooms[0, 0].SetSideState (Direction.North, true);
+                        _rooms[0, 0].SetSideState (Direction.North, true);
                         break;
                     case Direction.North:
-                        Rooms[1, 0].SetSideState (Direction.North, true);
+                        _rooms[1, 0].SetSideState (Direction.North, true);
                         break;
                     case Direction.NorthNorthWest:
-                        Rooms[2, 0].SetSideState (Direction.North, true);
+                        _rooms[2, 0].SetSideState (Direction.North, true);
                         break;
                     #endregion
 
                     #region South
                     case Direction.SouthSouthEast:
-                        Rooms[0, 2].SetSideState (Direction.South, true);
+                        _rooms[0, 2].SetSideState (Direction.South, true);
                         break;
                     case Direction.South:
-                        Rooms[1, 2].SetSideState (Direction.South, true);
+                        _rooms[1, 2].SetSideState (Direction.South, true);
                         break;
                     case Direction.SouthSouthWest:
-                        Rooms[2, 2].SetSideState (Direction.South, true);
+                        _rooms[2, 2].SetSideState (Direction.South, true);
                         break;
                     #endregion
 
                     #region East
                     case Direction.EastNorthEast:
-                        Rooms[0, 0].SetSideState (Direction.East, true);
+                        _rooms[0, 0].SetSideState (Direction.East, true);
                         break;
                     case Direction.East:
-                        Rooms[0, 1].SetSideState (Direction.East, true);
+                        _rooms[0, 1].SetSideState (Direction.East, true);
                         break;
                     case Direction.EastSouthEast:
-                        Rooms[0, 2].SetSideState (Direction.East, true);
+                        _rooms[0, 2].SetSideState (Direction.East, true);
                         break;
                     #endregion
 
                     #region West
                     case Direction.WestSouthWest:
-                        Rooms[2, 0].SetSideState (Direction.West, true);
+                        _rooms[2, 0].SetSideState (Direction.West, true);
                         break;
                     case Direction.West:
-                        Rooms[2, 1].SetSideState (Direction.West, true);
+                        _rooms[2, 1].SetSideState (Direction.West, true);
                         break;
                     case Direction.WestNorthWest:
-                        Rooms[2, 2].SetSideState (Direction.West, true);
+                        _rooms[2, 2].SetSideState (Direction.West, true);
                         break;
                         #endregion
                 }
@@ -255,69 +315,73 @@ namespace Backrooms.Assets.Scripts.World {
         #endregion
 
         #region Hallway building
-        /// When a new chunk is built, if there is an older chunk with a hallway connecting to the new chunk,
-        /// check the older chunk's connecting hallway chance. 
-        /// 
-        /// If the chance is below 10%, don't build a hallway.
-        /// 
-        /// Otherwise, roll for a connecting hallway.
-        /// 
-        /// If no older chunk has a hallway, hallway build chance is 10%.
+        /* When a new chunk is built, if there is an older chunk with a hallway connecting to the new chunk,
+         * check the older chunk's connecting hallway chance. 
+         * 
+         * If the chance is below 10%, don't build a hallway.
+         * 
+         * Otherwise, roll for a connecting hallway.
+         * 
+         * If no older chunk has a hallway, hallway build chance is 10%.
+         */
+        private void BuildHallways () => _hallwayConnections.ForEach (d => BuildHallway (d, Utility.GetOppositeSide (d)));
 
-        public void AddHallway (Direction start, Direction end) {
+        private void BuildHallway (Direction start, Direction end) {
             var startCords = _directionToRoomMap[start];
             var endCords = _directionToRoomMap[end];
 
-            var buildDirection = GetHallwayBuildDirection (startCords, endCords);
-
-            switch (buildDirection) {
+            switch (Utility.GetOppositeSide (start)) {
+                case Direction.North:
                 case Direction.South:
                     BuildNorthSouthHallway (startCords, endCords);
                     break;
                 case Direction.East:
+                case Direction.West:
                     BuildEastWestHallway (startCords, endCords);
                     break;
             }
         }
 
-        private Direction GetHallwayBuildDirection (Vector2 start, Vector2 end) {
-            if (start.y != end.y) {
-                return Direction.South;
-            }
-
-            if (start.x != end.x) {
-                return Direction.East;
-            }
-
-            throw new ArgumentException ("Hallways must connect from one edge of a chunk to another in a straight line.");
-        }
-
         private void BuildNorthSouthHallway (Vector2 start, Vector2 end) {
-            Rooms[(int) start.x, (int) start.y].SetSideState (Direction.South, true);
+            _rooms[(int) start.x, (int) start.y].SetSideState (Direction.North, true);
+            _rooms[(int) start.x, (int) start.y].SetSideState (Direction.South, true);
 
-            Rooms[(int) start.x, (int) (start.y + 1)].SetSideState (Direction.North, true);
-            Rooms[(int) start.x, (int) (start.y + 1)].SetSideState (Direction.South, true);
+            _rooms[(int) start.x, (int) (start.y + 1)].SetSideState (Direction.North, true);
+            _rooms[(int) start.x, (int) (start.y + 1)].SetSideState (Direction.South, true);
 
-            Rooms[(int) end.x, (int) end.y].SetSideState (Direction.North, true);
+            _rooms[(int) end.x, (int) end.y].SetSideState (Direction.North, true);
+            _rooms[(int) end.x, (int) end.y].SetSideState (Direction.South, true);
         }
 
         private void BuildEastWestHallway (Vector2 start, Vector2 end) {
-            Rooms[(int) start.x, (int) start.y].SetSideState (Direction.East, true);
+            _rooms[(int) start.x, (int) start.y].SetSideState (Direction.East, true);
+            _rooms[(int) start.x, (int) start.y].SetSideState (Direction.West, true);
 
-            Rooms[(int) (start.x + 1), (int) start.y].SetSideState (Direction.East, true);
-            Rooms[(int) (start.x + 1), (int) start.y].SetSideState (Direction.West, true);
+            _rooms[(int) (start.x + 1), (int) start.y].SetSideState (Direction.East, true);
+            _rooms[(int) (start.x + 1), (int) start.y].SetSideState (Direction.West, true);
 
-            Rooms[(int) end.x, (int) end.y].SetSideState (Direction.West, true);
+            _rooms[(int) end.x, (int) end.y].SetSideState (Direction.East, true);
+            _rooms[(int) end.x, (int) end.y].SetSideState (Direction.West, true);
         }
         #endregion
 
-        private bool IsChunkValid () {
+        private bool ValidateChunk () {
             Node[,] nodeMap = BuildNodeMap ();
 
-            for (int x = 0; x < _dimensions.x; x++) {
-                for (int y = 0; y < _dimensions.y; y++) {
+            for (int x = 0; x < _width; x++) {
+                for (int y = 0; y < _height; y++) {
                     if (!(x == 1 && y == 1)) {
-                        if (!ValidateChunk (nodeMap, x, y)) {
+                        var pathfinder = new AStar (nodeMap[x, y], nodeMap[1, 1], nodeMap);
+                        pathfinder.CheckEntrances = true;
+
+                        PathfindingStatus pathfinding;
+
+                        do {
+                            pathfinding = pathfinder.Step ();
+                        }
+                        while (pathfinding == PathfindingStatus.Finding);
+
+                        if (pathfinding == PathfindingStatus.Invalid) {
                             return false;
                         }
                     }
@@ -327,34 +391,15 @@ namespace Backrooms.Assets.Scripts.World {
             return true;
         }
 
-        private bool ValidateChunk (Node[,] nodeMap, int x, int y) {
-            var pathfinder = new AStar (nodeMap[x, y], nodeMap[(int) _center.x, (int) _center.y], nodeMap) {
-                CheckEntrances = true
-            };
-
-            PathfindingStatus pathfinding;
-
-            do {
-                pathfinding = pathfinder.Step ();
-            }
-            while (pathfinding == PathfindingStatus.Finding);
-
-            if (pathfinding == PathfindingStatus.Invalid) {
-                return false;
-            }
-
-            return true;
-        }
-
         private Node[,] BuildNodeMap () {
             var nodeMap = new Node[3, 3];
 
-            for (int x = 0; x < _dimensions.x; x++) {
-                for (int y = 0; y < _dimensions.y; y++) {
+            for (int x = 0; x < _width; x++) {
+                for (int y = 0; y < _height; y++) {
                     nodeMap[x, y] = new Node {
                         Cost = 1,
                         Position = new Vector2 (x, y),
-                        OpenEntrances = Rooms[x, y].OpenSides,
+                        OpenEntrances = _rooms[x, y].OpenSides,
                         Blocking = false
                     };
                 }
@@ -363,11 +408,11 @@ namespace Backrooms.Assets.Scripts.World {
             return nodeMap;
         }
 
-        public class ChunkRoom {
-            public bool NorthOpen { get; /*private*/ set; }
-            public bool SouthOpen { get; /*private*/ set; }
-            public bool EastOpen { get; /*private*/ set; }
-            public bool WestOpen { get; /*private*/ set; }
+        private class ChunkRoom {
+            public bool NorthOpen { get; private set; }
+            public bool SouthOpen { get; private set; }
+            public bool EastOpen { get; private set; }
+            public bool WestOpen { get; private set; }
 
             public List<Direction> OpenSides => GetOpenSides ();
 
