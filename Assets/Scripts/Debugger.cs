@@ -1,31 +1,13 @@
 ﻿using Backrooms.Assets.Scripts.Pathfinding;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Backrooms.Assets.Scripts {
     public class Debugger : MonoBehaviour {
-        private bool _waiting = false;
-        private float _waitCounter = 0;
-
         private void Update () {
-            if(_waiting) {
-                _waitCounter += Time.deltaTime;
-
-                if(_waitCounter >= 5) {
-                    _waiting = false;
-                }
-
-                if(Input.GetKeyDown(KeyCode.P)) {
-                    TestPathfinding ();
-                }
-            }
-
-            if(Input.GetKeyDown(KeyCode.Tilde)) {
-                _waiting = true;
+            if (Input.GetKeyDown (KeyCode.P)) {
+                TestPathfinding ();
             }
         }
 
@@ -98,7 +80,8 @@ namespace Backrooms.Assets.Scripts {
                 Cost = 1,
                 Position = new Vector2 (1, 2),
                 OpenEntrances = new List<Direction> {
-                    Direction.East
+                    Direction.East,
+                    Direction.West
                 }
             };
 
@@ -110,32 +93,37 @@ namespace Backrooms.Assets.Scripts {
                 }
             };
 
-            var start = nodes[2, 2];
             var end = nodes[0, 0];
 
-            var path = new AStar (start, end, nodes);
-            path.CheckEntrances = true;
+            for(int x = 0; x < 3; x++) {
+                for(int y = 0; y < 3; y++) {
+                    var start = nodes[x, y];
 
-            do {
-                path.Step ();
-            }
-            while (path.Status == PathfindingStatus.Finding);
+                    var path = new AStar (start, end, nodes);
+                    path.CheckEntrances = true;
 
-            if (path.Status == PathfindingStatus.Completed) {
-                var str = "";
+                    do {
+                        path.Step ();
+                    }
+                    while (path.Status == PathfindingStatus.Finding);
 
-                foreach (var node in path.Path) {
-                    str += $"[{node.Position.x}, {node.Position.y}]";
+                    if (path.Status == PathfindingStatus.Completed) {
+                        var str = "";
 
-                    if (node != path.Path.Last ()) {
-                        str += " -> ";
+                        foreach (var node in path.Path) {
+                            str += $"[{node.Position.x}, {node.Position.y}]";
+
+                            if (node != path.Path.Last ()) {
+                                str += " -> ";
+                            }
+                        }
+
+                        Debug.Log ($"[{x}, {y}] is valid: {str}");
+                    }
+                    else {
+                        Debug.Log ($"[{x}, {y}] is invalid");
                     }
                 }
-
-                Debug.Log (str);
-            }
-            else {
-                Debug.Log ($"Pathfinder returned status {path.Status}");
             }
         }
     }

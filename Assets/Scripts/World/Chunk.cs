@@ -7,6 +7,10 @@ namespace Backrooms.Assets.Scripts.World {
         public int Height = 3;
         public int Width = 3;
 
+        public bool PreGened = false;
+        public int ID;
+
+        // TODO: Pregend chunks need to have their room arrays pregened as well
         private Room[,] _rooms;
         private readonly List<Direction> _connections = new List<Direction> ();
         private readonly Dictionary<Direction, float> _hallwayConnections = new Dictionary<Direction, float> ();

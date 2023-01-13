@@ -7,25 +7,6 @@ using Random = UnityEngine.Random;
 
 namespace Backrooms.Assets.Scripts.World {
     public class ChunkBuilder : IChunkBuilder {
-        private readonly Dictionary<Direction, Vector2> _directionToRoomMap = new Dictionary<Direction, Vector2> () {
-                {Direction.North, new Vector2 (1, 0) },
-                {Direction.NorthEast, new Vector2 (0, 0) },
-                {Direction.NorthNorthEast, new Vector2 (0, 0) },
-                {Direction.EastNorthEast, new Vector2 (0, 0) },
-                {Direction.East, new Vector2 (0, 1) },
-                {Direction.SouthEast, new Vector2 (0, 2) },
-                {Direction.SouthSouthEast, new Vector2 (0, 2) },
-                {Direction.EastSouthEast, new Vector2 (0, 2) },
-                {Direction.South, new Vector2 (1, 2) },
-                {Direction.SouthWest, new Vector2 (2, 2) },
-                {Direction.SouthSouthWest, new Vector2 (2, 2) },
-                {Direction.WestSouthWest, new Vector2 (2, 2) },
-                {Direction.West, new Vector2 (2, 1) },
-                {Direction.NorthWest, new Vector2 (2, 0) },
-                {Direction.WestNorthWest, new Vector2 (2, 0) },
-                {Direction.NorthNorthWest, new Vector2 (2, 0) }
-        };
-
         public RoomConfig[,] Rooms { get; private set; }
 
         public Dictionary<Direction, float> HallwayBuildChances { get; private set; } = new Dictionary<Direction, float> {
@@ -85,6 +66,16 @@ namespace Backrooms.Assets.Scripts.World {
                 }
                 while (!ValidateChunk ());
 
+                Rooms = new RoomConfig[_width, _height];
+
+                for(int x = 0; x < _width; x++) {
+                    for(int y = 0; y < _height; y++) {
+                        var room = _rooms[x, y];
+
+                        Rooms[x, y] = new RoomConfig (room.NorthOpen, room.SouthOpen, room.EastOpen, room.WestOpen);
+                    }
+                }
+
                 _built = true;
             }
         }
@@ -134,7 +125,7 @@ namespace Backrooms.Assets.Scripts.World {
         }
 
         private void AddMinimumSides (ChunkRoom room, IList<Direction> directions, IList<Direction> minimum, int amount) {
-            var temp = new List<Direction> (minimum);
+            var temp = new List<Direction> ();
 
             AddOpenSides (room, minimum, amount);
 
@@ -327,8 +318,8 @@ namespace Backrooms.Assets.Scripts.World {
         private void BuildHallways () => _hallwayConnections.ForEach (d => BuildHallway (d, Utility.GetOppositeSide (d)));
 
         private void BuildHallway (Direction start, Direction end) {
-            var startCords = _directionToRoomMap[start];
-            var endCords = _directionToRoomMap[end];
+            var startCords = Utility.DirectionToRoomMap[start];
+            var endCords = Utility.DirectionToRoomMap[end];
 
             switch (Utility.GetOppositeSide (start)) {
                 case Direction.North:
@@ -365,6 +356,35 @@ namespace Backrooms.Assets.Scripts.World {
         }
         #endregion
 
+        #region Chunk Connecting
+        private void ConnectChunks() {
+            if(_connections.Count < 2) {
+                do {
+                    Direction dir;
+
+                    do {
+                        var roll = Random.Range (0, Enum.GetValues (typeof (Direction)).Length);
+
+                        dir = (Direction) roll;
+                    } while (Utility.CardinalDirections.Contains (dir) || _connections.Contains (dir));
+
+                    _connections.Add (dir);
+                } while (_connections.Count < 2);
+            }
+
+            foreach (var dir in _connections) {
+                var cord = Utility.DirectionToRoomMap[dir];
+
+                var room = _rooms[(int) cord.x, (int) cord.y];
+
+                var dirInt = (int) dir;
+
+                room.SetSideState ((Direction) (dirInt >> 4), true);
+            }
+        }
+        #endregion
+
+        #region Chunk Validation
         private bool ValidateChunk () {
             Node[,] nodeMap = BuildNodeMap ();
 
@@ -406,6 +426,29 @@ namespace Backrooms.Assets.Scripts.World {
             }
 
             return nodeMap;
+        }
+        #endregion
+
+        private class Chunk {
+            public ChunkRoom[,] Rooms { get; set; }
+
+            public Chunk (int width, int height) {
+                Rooms = new ChunkRoom[width, height];
+            }
+
+            public void OpenChunkEntrance (Direction dir) {
+                var cords = Utility.DirectionToRoomMap[dir];
+                var room = Rooms[(int) cords.x, (int) cords.y];
+
+                switch (dir) {
+                    case Direction.North:
+                        room.SetSideState (Direction.North, true);
+                        break;
+                    case Direction.NorthNorthEast:
+                        room.SetSideState (Direction.North, true);
+                        break;
+                }
+            }
         }
 
         private class ChunkRoom {

@@ -27,50 +27,47 @@ namespace Backrooms.Assets.Scripts.World {
                 _chunks.Clear ();
                 BuildChunks ();
             }
+
         }
 
         private void BuildChunks () {
-            for (int chunkX = 0; chunkX < 1; chunkX++) {
-                for (int chunkZ = 0; chunkZ < 1; chunkZ++) {
+            var start = ChunkDatabase.GetChunk (1);
+            _chunks.Add (new Vector3 (0, 0, 0), start);
+            Instantiate (start, ChunkRoot.transform);
+
+            for (int chunkX = -1; chunkX < 2; chunkX++) {
+                for (int chunkZ = -1; chunkZ < 2; chunkZ++) {
+                    if (chunkX == 0 && chunkZ == 0) {
+                        
+                        continue;
+                    }
+
                     var chunk = Instantiate (ChunkBase, ChunkRoot.transform);
-
-                    //if (chunkX == 0 && chunkZ == 0) {
-                    //    chunk.AddRoom (0, 0, RoomDatabase.Instance.GetRoomByID (12));
-                    //    chunk.AddRoom (1, 0, RoomDatabase.Instance.GetRoomByID (15));
-                    //    chunk.AddRoom (2, 0, RoomDatabase.Instance.GetRoomByID (13));
-                    //    chunk.AddRoom (0, 1, RoomDatabase.Instance.GetRoomByID (15));
-                    //    chunk.AddRoom (1, 1, RoomDatabase.Instance.GetRoomByID (1));
-                    //    chunk.AddRoom (2, 1, RoomDatabase.Instance.GetRoomByID (15));
-                    //    chunk.AddRoom (0, 2, RoomDatabase.Instance.GetRoomByID (11));
-                    //    chunk.AddRoom (1, 2, RoomDatabase.Instance.GetRoomByID (15));
-                    //    chunk.AddRoom (2, 2, RoomDatabase.Instance.GetRoomByID (14));
-
-                    //    chunk.transform.position = new Vector3 ();
-                    //    chunk.InstantiateRooms ();
-
-                    //    _chunks.Add (new Vector3 (), chunk);
-                    //    continue;
-                    //}
 
                     var position = new Vector3 (chunkX, 0, chunkZ);
 
-                    _chunks.Add (position, chunk);
+                    for(int x = 1; x != 1 << 3; x = x << 1) {
 
-                    if (_chunks.ContainsKey (position + Vector3.forward)) {
-                        chunk.AddConnections (_chunks[position + Vector3.forward].GetConnections (Direction.North));
                     }
 
-                    if (_chunks.ContainsKey (position + Vector3.back)) {
-                        chunk.AddConnections (_chunks[position + Vector3.back].GetConnections (Direction.South));
-                    }
-
+                    // Pregened chunks need to have open sides initilized
                     if (_chunks.ContainsKey (position + Vector3.right)) {
-                        chunk.AddConnections (_chunks[position + Vector3.right].GetConnections (Direction.East));
+                        chunk.AddConnections (_chunks[position + Vector3.right].GetConnections (Direction.North));
                     }
 
                     if (_chunks.ContainsKey (position + Vector3.left)) {
-                        chunk.AddConnections (_chunks[position + Vector3.left].GetConnections (Direction.West));
+                        chunk.AddConnections (_chunks[position + Vector3.left].GetConnections (Direction.South));
                     }
+
+                    if (_chunks.ContainsKey (position + Vector3.forward)) {
+                        chunk.AddConnections (_chunks[position + Vector3.forward].GetConnections (Direction.East));
+                    }
+
+                    if (_chunks.ContainsKey (position + Vector3.back)) {
+                        chunk.AddConnections (_chunks[position + Vector3.back].GetConnections (Direction.West));
+                    }
+
+                    _chunks.Add (position, chunk);
 
                     chunk.transform.position = new Vector3 (position.x * 48, 0, position.z * 48);
                     chunk.BuildChunk ();
