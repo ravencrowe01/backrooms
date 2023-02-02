@@ -1,4 +1,5 @@
-﻿using Raven.Backrooms.Framework.Word.Config;
+﻿using Raven.Backrooms.Framework;
+using Raven.Backrooms.Framework.Word.Config;
 using System.Collections.Generic;
 using UnityEngine;
 
