@@ -1,10 +1,21 @@
-﻿using Raven.Backrooms.Framework;
-using Raven.Backrooms.Framework.Word.Config;
-using System.Collections.Generic;
+﻿using Raven.Backrooms.Framework.Word.Config;
 using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World {
     public class Chunk : MonoBehaviour {
+        public struct ChunkRoom {
+            public Vector2 Coordinates { get; set; }
+            public Room Room { get; set; }
+        }
+
+        [SerializeField]
+        private int _width;
+        [SerializeField]
+        private int _height;
+
+        [SerializeField]
+        private ChunkRoom[] _chunkRooms;
+
         private Room[,] _rooms;
 
         protected Chunk () { }
@@ -16,34 +27,22 @@ namespace Backrooms.Assets.Scripts.World {
         private void Init (IChunkConfig config) {
             _rooms = new Room[config.Width, config.Height];
 
-            for(int x = 0; x < config.Width; x++) {
-                for(int y = 0; y < config.Height; y++) {
+            for (int x = 0; x < config.Width; x++) {
+                for (int y = 0; y < config.Height; y++) {
                     var roomConfig = config.Rooms[x, y];
                     // TODO room database time
                 }
             }
         }
-    }
 
-    public class Room : MonoBehaviour {
-        public IReadOnlyDictionary<Direction, ISideStateConfig> SideStates => _sideStates;
-        private Dictionary<Direction, ISideStateConfig> _sideStates;
+        private void Awake () {
+            if(_chunkRooms != null & _chunkRooms.Length > 0) {
+                _rooms = new Room[_width, _height];
 
-        public Room (ISideStateConfig north, ISideStateConfig south, ISideStateConfig east, ISideStateConfig west) {
-            _sideStates = new Dictionary<Direction, ISideStateConfig> {
-                {Direction.North, north },
-                {Direction.South, south },
-                {Direction.East, east },
-                {Direction.West, west },
-            };
-        }
-
-        public Room (IRoomConfig config) {
-
-        }
-
-        private void Init(IRoomConfig config) {
-
+                foreach(var room in _chunkRooms) {
+                    _rooms[(int) room.Coordinates.x, (int) room.Coordinates.y] = room.Room;
+                }
+            }
         }
     }
 }
