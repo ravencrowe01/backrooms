@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+﻿using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.Pathfinding {
     public interface IAStar {

@@ -1,5 +1,5 @@
 ﻿using Backrooms.Assets.Scripts.World.Config;
-using System.Numerics;
+using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.Pathfinding {
     public class Node {

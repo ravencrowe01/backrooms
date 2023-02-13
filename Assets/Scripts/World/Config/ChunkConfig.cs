@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
+using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World.Config {
     public class ChunkConfig : IChunkConfig {
-        public Vector2 Coordinates => new Vector2 (_cords.X, _cords.Y);
+        public Vector2 Coordinates => new Vector2 (_cords.x, _cords.y);
         private Vector2 _cords;
 
         public int Width { get; private set; }
@@ -42,7 +42,7 @@ namespace Backrooms.Assets.Scripts.World.Config {
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {
                     if (IsEdgeRoom (x, y)) {
-                        var open = _rooms[x, y].GetOpenSides ().ToList ();
+                        var open = _rooms[x, y].GetOpenSides ();
 
                         if (x != 0) {
                             open.Remove (Direction.West);

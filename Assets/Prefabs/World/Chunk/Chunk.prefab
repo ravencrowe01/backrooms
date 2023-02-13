@@ -47,5 +47,6 @@ MonoBehaviour:
   _idM: 0
   _width: 0
   _height: 0
+  _chunkSize: 8
   ChunkColumn: {fileID: 7255825510840747068, guid: 3bc30d4ac08112c45903059b985ee08b, type: 3}
   RoomHolder: {fileID: 6940844274733882503, guid: d950106f8985c7f468844eae9536ec3c, type: 3}

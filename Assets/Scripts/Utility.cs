@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Numerics;
+using UnityEngine;
 
 namespace Backrooms.Assets.Scripts {
     public class Utility {
@@ -42,7 +42,7 @@ namespace Backrooms.Assets.Scripts {
 
                 var neighbor = cords + vec;
 
-                if (neighbor.X >= 0 && neighbor.X < width && neighbor.Y >= 0 && neighbor.Y < height) {
+                if (neighbor.x >= 0 && neighbor.x < width && neighbor.y >= 0 && neighbor.y < height) {
                     list.Add (neighbor);
                 }
             }

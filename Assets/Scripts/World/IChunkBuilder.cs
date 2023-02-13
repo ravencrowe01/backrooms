@@ -1,6 +1,6 @@
 ﻿using Backrooms.Assets.Scripts.RNG;
 using Backrooms.Assets.Scripts.World.Config;
-using System.Numerics;
+using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World {
     public interface IChunkBuilder {

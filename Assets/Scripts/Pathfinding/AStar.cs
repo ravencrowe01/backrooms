@@ -1,7 +1,7 @@
 ﻿using Backrooms.Assets.Scripts;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
+using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.Pathfinding {
     public class AStar : IAStar {
@@ -93,7 +93,7 @@ namespace Backrooms.Assets.Scripts.Pathfinding {
             var adjacent = new List<PathNode> ();
 
             foreach (var adj in adjVec) {
-                var n = _map[(int) adj.X, (int) adj.Y];
+                var n = _map[(int) adj.x, (int) adj.y];
 
                 if (IsDirectionTraversable (n, Utility.GetDirectionFromVector (node.Position - adj))) {
                     adjacent.Add (new PathNode {

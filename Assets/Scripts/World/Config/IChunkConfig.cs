@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Numerics;
+using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World.Config {
     public interface IChunkConfig {

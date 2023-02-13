@@ -21,6 +21,12 @@ namespace Backrooms.Assets.Scripts.World {
 
         private Room[,] _rooms;
 
+        [SerializeField]
+        private int _chunkSize = 16;
+
+        public IReadOnlyDictionary<Direction, List<IRoomConfig>> OpenConnections => _openConnections;
+        private Dictionary<Direction, List<IRoomConfig>> _openConnections;
+
         public GameObject ChunkColumn;
         public GameObject RoomHolder;
 
@@ -30,9 +36,11 @@ namespace Backrooms.Assets.Scripts.World {
             _width = config.Width;
             _height = config.Height;
 
-            _cords = new Vector2 (config.Coordinates.X, config.Coordinates.Y);
+            _cords = new Vector2 (config.Coordinates.x, config.Coordinates.y);
 
             _rooms = new Room[config.Width, config.Height];
+
+            _openConnections = config.GetOpenSides ();
 
             BuildRoomsHolder ();
 
@@ -47,10 +55,12 @@ namespace Backrooms.Assets.Scripts.World {
             }
         }
 
+        public List<IRoomConfig> GetOpenConnections (Direction direction) => _openConnections[direction];
+
         private void BuildRoomsHolder () {
             for(int x = 0; x < _width; x++) {
                 var c = Instantiate (ChunkColumn, this.transform);
-                var newPos = new Vector3 (x * 16, 0, 0);
+                var newPos = new Vector3 (x * _chunkSize, 0, 0);
                 c.transform.localPosition = newPos;
             }
         }
@@ -61,7 +71,7 @@ namespace Backrooms.Assets.Scripts.World {
                     var trans = transform.GetChild (x);
                     var room = Instantiate (_rooms[x, z], trans);
 
-                    room.transform.position = new Vector3 (trans.position.x, 0, z * 16);
+                    room.transform.position = new Vector3 (trans.position.x, 0, z * _chunkSize);
                 }
             }
         }

@@ -1,8 +1,8 @@
-﻿using System.Numerics;
+﻿using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World.Config {
     public class HallwayConfig : IHallwayConfig {
-        public Vector2 Origin => new Vector2 (_origin.X, _origin.Y);
+        public Vector2 Origin => new Vector2 (_origin.x, _origin.y);
         private Vector2 _origin;
 
         public Direction Direction { get; private set; }

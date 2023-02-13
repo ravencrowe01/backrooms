@@ -1,7 +1,7 @@
 ﻿using Backrooms.Assets.Scripts.RNG;
 using Backrooms.Assets.Scripts.World.Config;
 using System;
-using System.Numerics;
+using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World {
     public class AreaBuilder : IAreaBuilder {
@@ -72,25 +72,25 @@ namespace Backrooms.Assets.Scripts.World {
         }
 
         private IChunkConfig BuildChunk (IRNG rng, AreaConfig area, Vector2 cords) {
-            var builder = new ChunkBuilder ().WithDiminsions (_cWidth, _cHeight).WithCoordinates (cords);
+            var builder = new ChunkBuilder ().WithDiminsions (_cWidth, _cHeight).WithCoordinates (cords).WithRoomSize(_roomSize);
 
-            foreach (var card in (Direction[]) Enum.GetValues (typeof (Direction))) {
-                var nCords = cords + Utility.GetVectorFromDirection (card);
+            foreach (var dir in (Direction[]) Enum.GetValues (typeof (Direction))) {
+                var nCords = cords + Utility.GetVectorFromDirection (dir);
 
-                var neighbor = area.GetChunk ((int) nCords.X, (int) nCords.Y);
+                var neighbor = area.GetChunk ((int) nCords.x, (int) nCords.y);
 
                 if (neighbor is not null) {
-                    AddConnections (builder, card, neighbor);
+                    AddConnections (builder, dir, neighbor);
 
-                    AddHallways (rng, builder, card, neighbor);
+                    AddHallways (rng, builder, dir, neighbor);
                 }
             }
 
             return builder.BuildChunk (rng);
         }
 
-        private void AddConnections (IChunkBuilder builder, Direction card, IChunkConfig neighbor) {
-            var opDir = Utility.GetOppositeDirection (card);
+        private void AddConnections (IChunkBuilder builder, Direction dir, IChunkConfig neighbor) {
+            var opDir = Utility.GetOppositeDirection (dir);
 
             var open = neighbor.GetOpenSides ()[opDir];
 
@@ -98,7 +98,7 @@ namespace Backrooms.Assets.Scripts.World {
                 var roomCords = op.Coordinates - Utility.GetVectorFromDirection (opDir);
 
                 for (int i = 0; i < _roomSize; i++) {
-                    builder.WithConnection (roomCords, card, i);
+                    builder.WithConnection (roomCords, dir, i);
                 }
             }
         }

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
+using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World.Config {
     public class RoomConfig : IRoomConfig {
-        public Vector2 Coordinates => new Vector2 (_cords.X, _cords.Y);
+        public Vector2 Coordinates => new Vector2 (_cords.x, _cords.y);
         private Vector2 _cords;
 
         public IReadOnlyDictionary<Direction, ISideStateConfig> SideStates { get; private set; }
@@ -14,6 +14,7 @@ namespace Backrooms.Assets.Scripts.World.Config {
             SideStates = sideStates;
         }
 
-        public IEnumerable<Direction> GetOpenSides () => SideStates.Keys.Where (d => SideStates[d].Open);
+        public IDictionary<Direction, ISideStateConfig> GetOpenSides () 
+            => (IDictionary<Direction, ISideStateConfig>) SideStates.Where (kv => kv.Value.Open).ToDictionary(a => a.Key);
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Backrooms.Assets.Scripts.Pathfinding;
 using Backrooms.Assets.Scripts.World.Config;
-using System.Numerics;
+using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World {
     public class ChunkValidator {

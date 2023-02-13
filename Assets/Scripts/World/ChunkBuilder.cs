@@ -3,7 +3,7 @@ using Backrooms.Assets.Scripts.World.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
+using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World {
     public class ChunkBuilder : IChunkBuilder {
@@ -48,12 +48,12 @@ namespace Backrooms.Assets.Scripts.World {
 
         public IChunkBuilder WithHallway (Vector2 start, float chance, Direction dir) {
             if (IsEdgeRoom (start)) {
-                if (start.X != 0 && start.Y == _height - 1) {
-                    start.Y = 0;
+                if (start.x != 0 && start.y == _height - 1) {
+                    start.y = 0;
                 }
 
-                if (start.Y != 0 && start.X == _width - 1) {
-                    start.X = 0;
+                if (start.y != 0 && start.x == _width - 1) {
+                    start.x = 0;
                 }
 
 
@@ -76,7 +76,7 @@ namespace Backrooms.Assets.Scripts.World {
 
             return this;
 
-            bool IsEdgeRoom (Vector2 start) => start.X == 0 || start.X == _width - 1 || start.Y == 0 || start.Y == _height - 1;
+            bool IsEdgeRoom (Vector2 start) => start.x == 0 || start.x == _width - 1 || start.y == 0 || start.y == _height - 1;
         }
 
         public IChunkBuilder WithCoordinates (Vector2 cords) {
@@ -84,18 +84,18 @@ namespace Backrooms.Assets.Scripts.World {
             return this;
         }
 
-        public IChunkConfig BuildChunk (IRNG IRNG) {
+        public IChunkConfig BuildChunk (IRNG RNG) {
             var chunk = new ProtoChunk (_width, _height);
             ChunkConfig config;
 
             do {
-                ConstructRooms (chunk, IRNG);
+                ConstructRooms (chunk, RNG);
 
                 AddChunkConnections (chunk);
 
                 BuildHallways (chunk);
 
-                FixRoomConnections (chunk, IRNG);
+                FixRoomConnections (chunk, RNG);
 
                 config = chunk.ToChunkConfig (_cords);
             } while (!ChunkValidator.ValidateChunk (config));
@@ -225,8 +225,8 @@ namespace Backrooms.Assets.Scripts.World {
             var limit = dir == Direction.South ? _height : _width;
 
             for (int i = 0; i < limit; i++) {
-                var x = dir == Direction.South ? start.X : i;
-                var y = dir == Direction.East ? start.Y : i;
+                var x = dir == Direction.South ? start.x : i;
+                var y = dir == Direction.East ? start.y : i;
 
                 var vec = new Vector2 (x, y);
 
@@ -288,11 +288,11 @@ namespace Backrooms.Assets.Scripts.World {
                 _hallways = new Dictionary<Vector2, ProtoHallway> ();
             }
 
-            public void AddRoom (Vector2 cords, ProtoRoom room) => _rooms[(int) cords.X, (int) cords.Y] = room;
+            public void AddRoom (Vector2 cords, ProtoRoom room) => _rooms[(int) cords.x, (int) cords.y] = room;
 
-            public ProtoRoom GetRoom (Vector2 cords) => _rooms[(int) cords.X, (int) cords.Y];
+            public ProtoRoom GetRoom (Vector2 cords) => _rooms[(int) cords.x, (int) cords.y];
 
-            public void SetRoomSideState (Vector2 cords, Direction side, int i, bool state) => _rooms[(int) cords.X, (int) cords.Y].SetSideState (side, i, state);
+            public void SetRoomSideState (Vector2 cords, Direction side, int i, bool state) => _rooms[(int) cords.x, (int) cords.y].SetSideState (side, i, state);
 
             public ChunkConfig ToChunkConfig (Vector2 cords) {
                 var chunk = new ChunkConfig (cords, _rooms.GetLength (0), _rooms.GetLength (1));

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿
+using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World.Config {
     public interface IHallwayConfig {
