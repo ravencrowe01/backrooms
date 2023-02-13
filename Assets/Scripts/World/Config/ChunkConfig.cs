@@ -60,7 +60,7 @@ namespace Backrooms.Assets.Scripts.World.Config {
                             open.Remove (Direction.South);
                         }
 
-                        foreach (var o in open) {
+                        foreach (var o in open.Keys) {
                             states[o].Add (_rooms[x, y]);
                         }
                     }

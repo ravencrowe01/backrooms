@@ -103,17 +103,17 @@ namespace Backrooms.Assets.Scripts.World {
             }
         }
 
-        private static void AddHallways (IRNG rng, IChunkBuilder builder, Direction card, IChunkConfig neighbor) {
+        private static void AddHallways (IRNG rng, IChunkBuilder builder, Direction dir, IChunkConfig neighbor) {
             foreach (var hallway in neighbor.Hallways) {
                 var roll = rng.Next (1);
                 var chance = hallway.Chance * 0.6f;
 
                 if (roll <= chance) {
                     switch (hallway.Direction) {
-                        case Direction.North when card == Direction.North || card == Direction.South:
+                        case Direction.North when dir == Direction.North || dir == Direction.South:
                             builder.WithHallway (hallway.Origin, chance, Direction.South);
                             break;
-                        case Direction.East when card == Direction.East || card == Direction.West:
+                        case Direction.East when dir == Direction.East || dir == Direction.West:
                             builder.WithHallway (hallway.Origin, chance, Direction.West);
                             break;
                     }

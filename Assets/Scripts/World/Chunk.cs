@@ -24,8 +24,9 @@ namespace Backrooms.Assets.Scripts.World {
         [SerializeField]
         private int _chunkSize = 16;
 
-        public IReadOnlyDictionary<Direction, List<IRoomConfig>> OpenConnections => _openConnections;
-        private Dictionary<Direction, List<IRoomConfig>> _openConnections;
+        public IReadOnlyDictionary<Direction, List<IRoomConfig>> OpenConnections;
+
+        public IReadOnlyList<IHallwayConfig> Hallways;
 
         public GameObject ChunkColumn;
         public GameObject RoomHolder;
@@ -40,7 +41,9 @@ namespace Backrooms.Assets.Scripts.World {
 
             _rooms = new Room[config.Width, config.Height];
 
-            _openConnections = config.GetOpenSides ();
+            OpenConnections = config.GetOpenSides ();
+
+            Hallways = config.Hallways;
 
             BuildRoomsHolder ();
 
@@ -54,8 +57,6 @@ namespace Backrooms.Assets.Scripts.World {
                 }
             }
         }
-
-        public List<IRoomConfig> GetOpenConnections (Direction direction) => _openConnections[direction];
 
         private void BuildRoomsHolder () {
             for(int x = 0; x < _width; x++) {
