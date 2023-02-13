@@ -7,11 +7,6 @@ using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World {
     public class Chunk : MonoBehaviour {
-        public struct ChunkRoom {
-            public Vector2 Coordinates { get; set; }
-            public Room Room { get; set; }
-        }
-
         public ID ID { get; private set; }
         [SerializeField]
         private int _idM;
@@ -24,18 +19,14 @@ namespace Backrooms.Assets.Scripts.World {
         [SerializeField]
         private int _height;
 
-        [SerializeField]
-        private ChunkRoom[] _chunkRooms;
-
         private Room[,] _rooms;
+
+        public GameObject ChunkColumn;
+        public GameObject RoomHolder;
 
         protected Chunk () { }
 
-        public Chunk (IChunkConfig config, IRNG rng) {
-            Init (config, rng);
-        }
-
-        private void Init (IChunkConfig config, IRNG rng) {
+        public void Init (IChunkConfig config, IRNG rng) {
             _width = config.Width;
             _height = config.Height;
 
@@ -43,36 +34,34 @@ namespace Backrooms.Assets.Scripts.World {
 
             _rooms = new Room[config.Width, config.Height];
 
+            BuildRoomsHolder ();
+
             for (int x = 0; x < config.Width; x++) {
-                for (int y = 0; y < config.Height; y++) {
-                    var roomConfig = config.Rooms[x, y];
+                for (int z = 0; z < config.Height; z++) {
+                    var roomConfig = config.Rooms[x, z];
                     var found = RoomRegistry.Instance.FilterRooms ((IDictionary<Direction, ISideStateConfig>) roomConfig.SideStates).ToList();
+                    var roll = rng.Next (found.Count ());
 
-                    _rooms[x, y] = found[rng.Next (found.Count ())];
+                    _rooms[x, z] = found[roll];
                 }
             }
         }
 
-        private void Awake () {
-            if (_chunkRooms != null & _chunkRooms.Length > 0) {
-                ID = new ID (_idM);
-
-                _rooms = new Room[_width, _height];
-
-                foreach(var room in _chunkRooms) {
-                    int x = (int) room.Coordinates.x, y = (int) room.Coordinates.y;
-
-                    _rooms[x, y] = room.Room;
-                }
-            }
-
-            InstantiateRooms ();
-        }
-
-        private void InstantiateRooms() {
+        private void BuildRoomsHolder () {
             for(int x = 0; x < _width; x++) {
-                for(int y = 0; y < _height; y++) {
-                    Instantiate (_rooms[x, y], transform.GetChild (x).GetChild (y));
+                var c = Instantiate (ChunkColumn, this.transform);
+                var newPos = new Vector3 (x * 16, 0, 0);
+                c.transform.localPosition = newPos;
+            }
+        }
+
+        public void InstantiateRooms() {
+            for(int x = 0; x < _width; x++) {
+                for(int z = 0; z < _height; z++) {
+                    var trans = transform.GetChild (x);
+                    var room = Instantiate (_rooms[x, z], trans);
+
+                    room.transform.position = new Vector3 (trans.position.x, 0, z * 16);
                 }
             }
         }

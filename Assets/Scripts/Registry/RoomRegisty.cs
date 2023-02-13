@@ -3,23 +3,14 @@ using Backrooms.Assets.Scripts.World.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.Database {
-    public class RoomRegistry {
-        public static RoomRegistry Instance {
-            get {
-                if (_instance == null) {
-                    lock (_instanceLock) {
-                        _instance ??= new RoomRegistry ();
-                    }
-                }
+    public class RoomRegistry : MonoBehaviour {
+        public static RoomRegistry Instance { get; private set; }
 
-                return _instance;
-            }
-        }
-
-        private static RoomRegistry _instance;
-        private static object _instanceLock = new object ();
+        [SerializeField]
+        private Room[] _roomArray;
 
         public IReadOnlyDictionary<ID, Room> Rooms => _rooms;
         private Dictionary<ID, Room> _rooms;
@@ -43,5 +34,25 @@ namespace Backrooms.Assets.Scripts.Database {
                 return true;
             });
 
+        private void Awake () {
+            if (Instance != null && Instance != this) {
+                Destroy (this);
+            }
+            else {
+                Instance = this;
+            }
+
+            if (_roomArray != null && _roomArray.Length > 0) {
+                InitRegistry ();
+            }
+        }
+
+        private void InitRegistry () {
+            foreach (var room in _roomArray) {
+                _rooms.Add (room.ID, room);
+            }
+
+            _roomArray = null;
+        }
     }
 }

@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   North: 00
   South: 00
-  East: 01
-  West: 00
+  East: 00
+  West: 01

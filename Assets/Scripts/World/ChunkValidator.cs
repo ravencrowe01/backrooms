@@ -22,7 +22,7 @@ namespace Backrooms.Assets.Scripts.World {
                         }
                         while (pathfinding == PathfindingStatus.Finding && rPathfinding == PathfindingStatus.Finding);
 
-                        if (pathfinding == PathfindingStatus.Invalid) {
+                        if (pathfinding == PathfindingStatus.Invalid || rPathfinding == PathfindingStatus.Invalid) {
                             return false;
                         }
                     }
