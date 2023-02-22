@@ -116,11 +116,11 @@ namespace Backrooms.Assets.Scripts.World {
         private ProtoRoom ConstructRoom (int x, int y, IRNG IRNG) {
             var room = new ProtoRoom (new Vector2 (x, y), _roomSize);
             var openable = GetOpenableSides (x, y);
-
-            //The center room needs to have at least two open sides.
+            
             // The outer rooms need to have at least one open side.
             AddOpenSides (room, openable, IRNG);
 
+            // The center room needs to have at least two open sides.
             if (x == 0 && y == 0 && room.GetOpenSides ().Count < 2) {
                 AddOpenSides (room, openable, IRNG);
             }
@@ -195,6 +195,7 @@ namespace Backrooms.Assets.Scripts.World {
             foreach (var cord in _chunkConnections.Keys) {
                 foreach (var side in _chunkConnections[cord]) {
                     for (int i = 0; i < _roomSize; i++) {
+                        // TODO Default connections
                         chunk.SetRoomSideState (cord, side.Key, i, true);
                     }
                 }

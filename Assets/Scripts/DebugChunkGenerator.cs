@@ -6,9 +6,13 @@ namespace Backrooms.Assets.Scripts {
     public class DebugChunkGenerator : MonoBehaviour {
         public Chunk ChunkBase;
         public ChunkRoot ChunkRoot;
-        public int Test;
+        private ChunkRoot _root;
 
         private Chunk _chunk;
+
+        private void Awake () {
+            _root = Instantiate (ChunkRoot, transform);
+        }
 
         private void Update () {
             if (Input.GetKeyDown (KeyCode.R) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift))) {
@@ -29,9 +33,10 @@ namespace Backrooms.Assets.Scripts {
                 .WithRoomSize (1);
 
             var rng = new RNGProvider ();
-            rng.SetSeed ((seed / x) * z);
+            rng.SetSeed ((seed / (x == 0 ? 1 : x)) * (z == 0 ? 1 : z));
 
-            _chunk = Instantiate (ChunkBase, ChunkRoot.transform);
+
+            _chunk = Instantiate (ChunkBase, _root.transform);
             _chunk.Init (builder.BuildChunk (rng), rng);
             _chunk.transform.position = new Vector3 (x, 0, z);
             _chunk.InstantiateRooms ();

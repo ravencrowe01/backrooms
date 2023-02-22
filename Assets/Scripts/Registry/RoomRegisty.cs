@@ -51,8 +51,6 @@ namespace Backrooms.Assets.Scripts.Database {
             foreach (var room in _roomArray) {
                 _rooms.Add (room.ID, room);
             }
-
-            _roomArray = null;
         }
     }
 }

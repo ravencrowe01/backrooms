@@ -4,7 +4,15 @@ using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World.Config {
     public class ChunkConfig : IChunkConfig {
-        public Vector2 Coordinates => new Vector2 (_cords.x, _cords.y);
+        public Vector2 Coordinates {
+            get {
+                return new Vector2 (_cords.x, _cords.y);
+            }
+
+            set {
+                _cords = value;
+            }
+        } //new Vector2 (_cords.x, _cords.y);
         private Vector2 _cords;
 
         public int Width { get; private set; }
@@ -14,6 +22,7 @@ namespace Backrooms.Assets.Scripts.World.Config {
         private IRoomConfig[,] _rooms;
 
         public IReadOnlyList<IHallwayConfig> Hallways => _hallways;
+
         private List<IHallwayConfig> _hallways;
 
         public ChunkConfig (Vector2 cords, IRoomConfig[,] rooms, List<IHallwayConfig> hallways) {
@@ -37,7 +46,12 @@ namespace Backrooms.Assets.Scripts.World.Config {
         public void AddHallway (Vector2 origin, Direction dir, float chance) => _hallways.Add (new HallwayConfig (origin, dir, chance));
 
         public Dictionary<Direction, List<IRoomConfig>> GetOpenSides () {
-            var states = new Dictionary<Direction, List<IRoomConfig>> ();
+            var states = new Dictionary<Direction, List<IRoomConfig>> () {
+                {Direction.North, new List<IRoomConfig>() },
+                {Direction.South, new List<IRoomConfig>() },
+                {Direction.East, new List<IRoomConfig>() },
+                {Direction.West, new List<IRoomConfig>() }
+            };
 
             for (int x = 0; x < Width; x++) {
                 for (int y = 0; y < Height; y++) {

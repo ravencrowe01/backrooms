@@ -13,8 +13,6 @@ namespace Backrooms.Assets.Scripts.World {
 
         private int _roomSize = 1;
 
-        private IRNG _rng;
-
         public IAreaBuilder WithDiminsions (int width, int height) {
             _width = width;
             _height = height;
@@ -77,12 +75,14 @@ namespace Backrooms.Assets.Scripts.World {
             foreach (var dir in (Direction[]) Enum.GetValues (typeof (Direction))) {
                 var nCords = cords + Utility.GetVectorFromDirection (dir);
 
-                var neighbor = area.GetChunk ((int) nCords.x, (int) nCords.y);
+                if (nCords.x >= 0 && nCords.x < _height && nCords.y >= 0 && nCords.y < _height) {
+                    var neighbor = area.GetChunk ((int) nCords.x, (int) nCords.y);
 
-                if (neighbor is not null) {
-                    AddConnections (builder, dir, neighbor);
+                    if (neighbor is not null) {
+                        AddConnections (builder, dir, neighbor);
 
-                    AddHallways (rng, builder, dir, neighbor);
+                        AddHallways (rng, builder, dir, neighbor);
+                    }
                 }
             }
 
@@ -97,8 +97,10 @@ namespace Backrooms.Assets.Scripts.World {
             foreach (var op in open) {
                 var roomCords = op.Coordinates - Utility.GetVectorFromDirection (opDir);
 
-                for (int i = 0; i < _roomSize; i++) {
-                    builder.WithConnection (roomCords, dir, i);
+                if(roomCords.x >= 0 && roomCords.x < _cWidth && roomCords.y >= 0 && roomCords.y< _cHeight) {
+                    for (int i = 0; i < _roomSize; i++) {
+                        builder.WithConnection (roomCords, dir, i);
+                    }
                 }
             }
         }

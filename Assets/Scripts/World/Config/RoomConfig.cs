@@ -14,7 +14,16 @@ namespace Backrooms.Assets.Scripts.World.Config {
             SideStates = sideStates;
         }
 
-        public IDictionary<Direction, ISideStateConfig> GetOpenSides () 
-            => (IDictionary<Direction, ISideStateConfig>) SideStates.Where (kv => kv.Value.Open).ToDictionary(a => a.Key);
+        public IDictionary<Direction, ISideStateConfig> GetOpenSides () {
+            var dict = new Dictionary<Direction, ISideStateConfig> ();
+
+            foreach(var dir in SideStates.Keys) {
+                if (SideStates[dir].Open) {
+                    dict.Add (dir, SideStates[dir]);
+                }
+            }
+
+            return dict;
+        }
     }
 }

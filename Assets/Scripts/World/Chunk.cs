@@ -61,8 +61,8 @@ namespace Backrooms.Assets.Scripts.World {
         private void BuildRoomsHolder () {
             for(int x = 0; x < _width; x++) {
                 var c = Instantiate (ChunkColumn, this.transform);
-                var newPos = new Vector3 (x * _chunkSize, 0, 0);
-                c.transform.localPosition = newPos;
+
+                c.transform.position = new Vector3 (x * _chunkSize, 0, 0);
             }
         }
 

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World.Config {
     public interface IChunkConfig {
-        Vector2 Coordinates { get; }
+        Vector2 Coordinates { get; set; }
         IReadOnlyList<IHallwayConfig> Hallways { get; }
         int Height { get; }
         IRoomConfig[,] Rooms { get; }
