@@ -22,7 +22,7 @@ namespace Backrooms.Assets.Scripts.World {
             // IDK why this needs to go after the rooms are instantiated.
             // I guess it's something to do with how unity works that I haven't dug into.
             // I can't wait until it doesn't work on other computers :)
-            c.transform.position = new Vector3 (chunk.Coordinates.x, 0, chunk.Coordinates.y);
+            c.transform.position = new Vector3 (chunk.Coordinates.x * 24, 0, chunk.Coordinates.y * 24);
         }
     }
 }

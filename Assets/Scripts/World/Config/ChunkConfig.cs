@@ -4,15 +4,7 @@ using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World.Config {
     public class ChunkConfig : IChunkConfig {
-        public Vector2 Coordinates {
-            get {
-                return new Vector2 (_cords.x, _cords.y);
-            }
-
-            set {
-                _cords = value;
-            }
-        } //new Vector2 (_cords.x, _cords.y);
+        public Vector2 Coordinates => new Vector2 (_cords.x, _cords.y); 
         private Vector2 _cords;
 
         public int Width { get; private set; }

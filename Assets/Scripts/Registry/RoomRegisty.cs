@@ -22,7 +22,7 @@ namespace Backrooms.Assets.Scripts.Database {
         public void AddRoom (ID id, Room room) => _rooms.Add (id, room);
 
         public Room GetRoom (ID id) => _rooms[id];
-
+        
         public IEnumerable<Room> FilterRooms (IDictionary<Direction, ISideStateConfig> filter) =>
             _rooms.Values.Where (r => {
                 foreach (var dir in Enum.GetValues (typeof (Direction)).Cast<Direction> ()) {
@@ -33,6 +33,11 @@ namespace Backrooms.Assets.Scripts.Database {
 
                 return true;
             });
+
+        [RuntimeInitializeOnLoadMethod (RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void Init () {
+            Instance = null;
+        }
 
         private void Awake () {
             if (Instance != null && Instance != this) {

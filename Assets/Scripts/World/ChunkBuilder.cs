@@ -4,6 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
+using Backrooms.Assets.Scripts.World.Prototypes;
+using System.Runtime.InteropServices.WindowsRuntime;
+using UnityEngine.UI;
 
 namespace Backrooms.Assets.Scripts.World {
     public class ChunkBuilder : IChunkBuilder {
@@ -31,19 +35,32 @@ namespace Backrooms.Assets.Scripts.World {
             return this;
         }
 
-        public IChunkBuilder WithConnection (Vector2 connectedRoom, Direction dir, int index) {
+        public IChunkBuilder WithConnection (Vector2 connectedRoom, Direction dir) {
             var side = new ProtoSideState (_roomSize);
 
-            side.SetState (index, true);
+            side.SetTotalState (true);
 
             if (!_chunkConnections.ContainsKey (connectedRoom)) {
-                _chunkConnections.Add (connectedRoom, new Dictionary<Direction, ProtoSideState> { { dir, side } });
+                _chunkConnections.Add (connectedRoom, BuildConnectionDict(dir, side));
             }
             else {
-                _chunkConnections[connectedRoom][dir].SetState (index, true);
+                _chunkConnections[connectedRoom][dir].SetTotalState(true);
             }
 
             return this;
+
+            Dictionary<Direction, ProtoSideState> BuildConnectionDict(Direction dir, ProtoSideState side) {
+                var dict = new Dictionary<Direction, ProtoSideState> {
+                    { Direction.North, new ProtoSideState(_roomSize) },
+                    { Direction.South, new ProtoSideState(_roomSize) },
+                    { Direction.East, new ProtoSideState(_roomSize) },
+                    { Direction.West, new ProtoSideState(_roomSize) },
+                };
+
+                dict[dir] = side;
+
+                return dict;
+            }
         }
 
         public IChunkBuilder WithHallway (Vector2 start, float chance, Direction dir) {
@@ -84,9 +101,8 @@ namespace Backrooms.Assets.Scripts.World {
             return this;
         }
 
-        public IChunkConfig BuildChunk (IRNG RNG) {
-            var chunk = new ProtoChunk (_width, _height);
-            ChunkConfig config;
+        public ProtoChunk BuildChunkAsPrototype (IRNG RNG) {
+            var chunk = new ProtoChunk (_width);
 
             do {
                 ConstructRooms (chunk, RNG);
@@ -96,12 +112,12 @@ namespace Backrooms.Assets.Scripts.World {
                 BuildHallways (chunk);
 
                 FixRoomConnections (chunk, RNG);
+            } while (!ChunkValidator.ValidateChunk (chunk));
 
-                config = chunk.ToChunkConfig (_cords);
-            } while (!ChunkValidator.ValidateChunk (config));
-
-            return config;
+            return chunk;
         }
+
+        public IChunkConfig BuildChunk (IRNG RNG) => BuildChunkAsPrototype (RNG).ToChunkConfig (_cords);
         #endregion
 
         #region Room Construction
@@ -116,7 +132,7 @@ namespace Backrooms.Assets.Scripts.World {
         private ProtoRoom ConstructRoom (int x, int y, IRNG IRNG) {
             var room = new ProtoRoom (new Vector2 (x, y), _roomSize);
             var openable = GetOpenableSides (x, y);
-            
+
             // The outer rooms need to have at least one open side.
             AddOpenSides (room, openable, IRNG);
 
@@ -192,14 +208,68 @@ namespace Backrooms.Assets.Scripts.World {
 
         #region Chunk Connecting
         private void AddChunkConnections (ProtoChunk chunk) {
+            if (_chunkConnections.Count == 0) {
+                CreateRandomConnections ();
+            }
+
             foreach (var cord in _chunkConnections.Keys) {
                 foreach (var side in _chunkConnections[cord]) {
                     for (int i = 0; i < _roomSize; i++) {
-                        // TODO Default connections
                         chunk.SetRoomSideState (cord, side.Key, i, true);
                     }
                 }
             }
+        }
+
+        private void CreateRandomConnections () {
+            var roll = Random.Range (2, 9);
+
+            while (roll > 0) {
+                var dir = (Direction) Random.Range (0, 4);
+
+                var room = Random.Range (0, _width);
+
+                Vector2 roomCords = GetConnectionRoomCoordinates (dir, room);
+
+                var side = new ProtoSideState (_roomSize);
+
+                side.SetTotalState (true);
+
+                if (_chunkConnections.ContainsKey (roomCords)) {
+                    if (!_chunkConnections[roomCords].ContainsKey (dir)) {
+                        _chunkConnections[roomCords].Add (dir, side);
+
+                        roll--;
+                    }
+                }
+                else {
+                    _chunkConnections.Add (roomCords, new Dictionary<Direction, ProtoSideState> () {
+                        { dir, side }
+                    });
+
+                    roll--;
+                }
+            }
+        }
+
+        private Vector2 GetConnectionRoomCoordinates (Direction dir, int room) {
+            if (dir == Direction.North) {
+                return new Vector2 (room, _width - 1);
+            }
+
+            else if (dir == Direction.South) {
+                return new Vector2 (room, 0);
+            }
+
+            else if (dir == Direction.East) {
+                return new Vector2 (_width - 1, room);
+            }
+
+            else if (dir == Direction.West) {
+                return new Vector2 (0, room);
+            }
+
+            return new Vector2(-1, -1);
         }
         #endregion
 
@@ -278,114 +348,5 @@ namespace Backrooms.Assets.Scripts.World {
             }
         }
         #endregion
-
-        private class ProtoChunk {
-            private ProtoRoom[,] _rooms;
-
-            private Dictionary<Vector2, ProtoHallway> _hallways;
-
-            public ProtoChunk (int width, int height) {
-                _rooms = new ProtoRoom[width, height];
-                _hallways = new Dictionary<Vector2, ProtoHallway> ();
-            }
-
-            public void AddRoom (Vector2 cords, ProtoRoom room) => _rooms[(int) cords.x, (int) cords.y] = room;
-
-            public ProtoRoom GetRoom (Vector2 cords) => _rooms[(int) cords.x, (int) cords.y];
-
-            public void SetRoomSideState (Vector2 cords, Direction side, int i, bool state) => _rooms[(int) cords.x, (int) cords.y].SetSideState (side, i, state);
-
-            public ChunkConfig ToChunkConfig (Vector2 cords) {
-                var chunk = new ChunkConfig (cords, _rooms.GetLength (0), _rooms.GetLength (1));
-
-                foreach (var hallway in _hallways.Keys) {
-                    chunk.AddHallway (hallway, _hallways[hallway].Direction, _hallways[hallway].BuildChance);
-                }
-
-                for (int x = 0; x < _rooms.GetLength (0); x++) {
-                    for (int y = 0; y < _rooms.GetLength (1); y++) {
-                        var room = _rooms[x, y];
-
-                        chunk.SetRoom (x, y, room.ToRoomConfig ());
-                    }
-                }
-
-                return chunk;
-            }
-        }
-
-        private class ProtoRoom {
-            private Vector2 _cords;
-            private Dictionary<Direction, ProtoSideState> _states;
-
-            public ProtoRoom (Vector2 cords, int size) {
-                _cords = cords;
-
-                _states = new Dictionary<Direction, ProtoSideState> {
-                    {Direction.North, new ProtoSideState(size) },
-                    {Direction.South, new ProtoSideState(size) },
-                    {Direction.East, new ProtoSideState(size) },
-                    {Direction.West, new ProtoSideState(size) }
-                };
-            }
-
-            public Dictionary<Direction, ProtoSideState> GetOpenSides () {
-                var open = new Dictionary<Direction, ProtoSideState> ();
-
-                foreach (var dir in (Direction[]) Enum.GetValues (typeof (Direction))) {
-                    if (_states[dir].Open) {
-                        open.Add (dir, _states[dir]);
-                    }
-                }
-
-                return open;
-            }
-
-            public void SetSideState (Direction dir, int i, bool state) => _states[dir].SetState (i, state);
-
-            public bool GetSideState (Direction dir, int i) => _states[dir].GetState (i);
-
-            public ProtoSideState GetSideState (Direction dir) => _states[dir];
-
-            public IRoomConfig ToRoomConfig () {
-                var states = new Dictionary<Direction, ISideStateConfig> ();
-
-                foreach (var state in _states.Keys) {
-                    states.Add (state, _states[state].ToSideStateConfig ());
-                }
-
-                return new RoomConfig (_cords, states);
-            }
-        }
-
-        private class ProtoSideState {
-            public bool[] _states;
-
-            public bool Open => _states.Any (s => s);
-
-            public ProtoSideState (int size) {
-                _states = new bool[size];
-            }
-
-            public ProtoSideState (bool[] states) {
-                _states = states;
-            }
-
-            public ISideStateConfig ToSideStateConfig () => new SideStateConfig (_states);
-
-            public void SetState (int i, bool state) => _states[i] = state;
-
-            public bool GetState (int i) => _states[i];
-        }
-
-        private struct ProtoHallway {
-            public float BuildChance { get; private set; }
-            public Direction Direction { get; private set; }
-
-            public ProtoHallway (float chance, Direction direction) {
-                BuildChance = chance;
-                Direction = direction;
-            }
-        }
     }
 }

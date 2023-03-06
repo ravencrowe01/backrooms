@@ -83,7 +83,7 @@ namespace Backrooms.Assets.Scripts.World {
                 var roomCords = op.Coordinates - Utility.GetVectorFromDirection (opDir);
 
                 for (int i = 0; i < _config.RoomSize; i++) {
-                    builder.WithConnection (roomCords, dir, 0);
+                    builder.WithConnection (roomCords, dir);
                 }
             }
         }

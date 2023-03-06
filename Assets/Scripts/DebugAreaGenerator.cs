@@ -30,7 +30,6 @@ namespace Backrooms.Assets.Scripts {
                 for(int x = 0; x < area.Chunks.GetLength(0); x++) {
                     for(int z = 0; z < area.Chunks.GetLength(1); z++) {
                         var chunk = area.GetChunk (x, z);
-                        chunk.Coordinates *= 24;
                         root.AddChunk (chunk, ChunkBase, rng);
                     }
                 }
