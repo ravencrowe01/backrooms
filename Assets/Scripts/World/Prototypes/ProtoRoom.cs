@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace Backrooms.Assets.Scripts.World.Prototypes {
     public class ProtoRoom {
+        public Vector2 Coordinates => new Vector2 (_cords.x, _cords.y);
         private Vector2 _cords;
         private Dictionary<Direction, ProtoSideState> _states;
 

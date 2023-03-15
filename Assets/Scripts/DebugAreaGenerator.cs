@@ -16,7 +16,7 @@ namespace Backrooms.Assets.Scripts {
             if((Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift)) 
                 && Input.GetKeyDown (KeyCode.A)) {
                 var builder = new AreaBuilder ()
-                    .WithDiminsions (10, 10)
+                    .WithDiminsions (3, 3)
                     .WithChunkDiminsions (3, 3)
                     .WithRoomSize (1);
 

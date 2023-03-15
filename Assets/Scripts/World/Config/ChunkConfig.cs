@@ -14,7 +14,6 @@ namespace Backrooms.Assets.Scripts.World.Config {
         private IRoomConfig[,] _rooms;
 
         public IReadOnlyList<IHallwayConfig> Hallways => _hallways;
-
         private List<IHallwayConfig> _hallways;
 
         public ChunkConfig (Vector2 cords, IRoomConfig[,] rooms, List<IHallwayConfig> hallways) {
