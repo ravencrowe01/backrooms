@@ -1,5 +1,4 @@
-﻿using Backrooms.Assets.Scripts.RNG;
-using Backrooms.Assets.Scripts.World.Config;
+﻿using Backrooms.Assets.Scripts.World.Config;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,12 +9,12 @@ namespace Backrooms.Assets.Scripts.World {
 
         public Chunk FindChunk (int x, int z) => _chunks.Where (c => c.Coordinates.x == x && c.Coordinates.y == z).FirstOrDefault ();
 
-        public void AddChunk (IChunkConfig chunk, Chunk chunkBase, IRNG rng) {
+        public void AddChunk (IChunkConfig chunk, Chunk chunkBase, int seed) {
             var c = Instantiate (chunkBase, transform, false);
 
             _chunks.Add (c);
 
-            c.Init (chunk, rng);
+            c.Init (chunk, seed);
 
             c.InstantiateRooms ();
 

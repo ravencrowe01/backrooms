@@ -1,5 +1,4 @@
-﻿using Backrooms.Assets.Scripts.RNG;
-using Backrooms.Assets.Scripts.World;
+﻿using Backrooms.Assets.Scripts.World;
 using UnityEngine;
 
 namespace Backrooms.Assets.Scripts {
@@ -15,8 +14,8 @@ namespace Backrooms.Assets.Scripts {
         }
 
         private void Update () {
-            if (Input.GetKeyDown (KeyCode.R) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift))) {
-                if(_chunk != null) {
+            if (Input.GetKeyDown (KeyCode.R) && (Input.GetKey (KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift))) {
+                if (_chunk != null) {
                     Destroy (_chunk.gameObject);
                     _chunk = null;
                 }
@@ -25,19 +24,15 @@ namespace Backrooms.Assets.Scripts {
             }
         }
 
-        private void BuildChunk(int x, int z, int seed) {
+        private void BuildChunk (int x, int z, int seed) {
             var builder = new ChunkBuilder ();
 
             builder.WithDiminsions (3, 3)
                 .WithCoordinates (new Vector2 (0, 0))
                 .WithRoomSize (1);
 
-            var rng = new RNGProvider ();
-            rng.SetSeed ((seed / (x == 0 ? 1 : x)) * (z == 0 ? 1 : z));
-
-
             _chunk = Instantiate (ChunkBase, _root.transform);
-            _chunk.Init (builder.BuildChunk (rng), rng);
+            _chunk.Init (builder.BuildChunk (seed), seed);
             _chunk.transform.position = new Vector3 (x, 0, z);
             _chunk.InstantiateRooms ();
         }

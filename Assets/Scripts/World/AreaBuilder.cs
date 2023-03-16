@@ -1,10 +1,11 @@
-﻿using Backrooms.Assets.Scripts.RNG;
-using Backrooms.Assets.Scripts.World.Config;
+﻿using Backrooms.Assets.Scripts.World.Config;
 using Backrooms.Assets.Scripts.World.Prototypes;
 using System;
 using System.Drawing;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
+
 
 namespace Backrooms.Assets.Scripts.World {
     public class AreaBuilder : IAreaBuilder {
@@ -33,47 +34,48 @@ namespace Backrooms.Assets.Scripts.World {
             return this;
         }
 
-        public IAreaConfig BuildArea (IRNG rng) {
+        public IAreaConfig BuildArea (int seed) {
             var area = new ProtoArea (_width);
 
-            AddSeedChunks (rng, area);
+            AddSeedChunks (seed, area);
 
-            AddChunks (rng, area);
+            AddChunks (seed, area);
 
             FixChunkConnections (area);
 
             return area.ToAreaConfig();
         }
 
-        private void AddSeedChunks (IRNG rng, ProtoArea area) {
+        private void AddSeedChunks (int seed, ProtoArea area) {
             var a = _width * _height;
+            Random.InitState (seed);
 
             for (int i = 0; i < a / 10 + 1; i++) {
                 int x, y;
 
                 do {
-                    x = rng.Next (_height);
-                    y = rng.Next (_width);
+                    x = Random.Range (0, _width);
+                    y = Random.Range (0, _width);
                 } while (area.GetChunk (x, y) is not null);
 
-                var chunk = BuildChunk (rng, area, new Vector2 (x, y));
+                var chunk = BuildChunk (seed, area, new Vector2 (x, y));
 
                 area.AddChunk (chunk, x, y);
             }
         }
 
-        private void AddChunks (IRNG rng, ProtoArea area) {
+        private void AddChunks (int seed, ProtoArea area) {
             for (int x = 0; x < _width; x++) {
                 for (int y = 0; y < _height; y++) {
                     if (area.GetChunk (x, y) is null) {
-                        var chunk = BuildChunk (rng, area, new Vector2 (x, y));
+                        var chunk = BuildChunk (seed, area, new Vector2 (x, y));
                         area.AddChunk (chunk, x, y);
                     }
                 }
             }
         }
 
-        private ProtoChunk BuildChunk (IRNG rng, ProtoArea area, Vector2 cords) {
+        private ProtoChunk BuildChunk (int seed, ProtoArea area, Vector2 cords) {
             var builder = new ChunkBuilder ().WithDiminsions (_cWidth, _cHeight).WithCoordinates (cords).WithRoomSize(_roomSize);
 
             foreach (var dir in (Direction[]) Enum.GetValues (typeof (Direction))) {
@@ -85,12 +87,12 @@ namespace Backrooms.Assets.Scripts.World {
                     if (neighbor is not null) {
                         AddConnections (builder, dir, neighbor);
 
-                        AddHallways (rng, builder, dir, neighbor);
+                        AddHallways (seed, builder, dir, neighbor);
                     }
                 }
             }
 
-            return builder.BuildChunkAsPrototype (rng);
+            return builder.BuildChunkAsPrototype (seed);
         }
 
         private void AddConnections (IChunkBuilder builder, Direction dir, ProtoChunk neighbor) {
@@ -125,10 +127,13 @@ namespace Backrooms.Assets.Scripts.World {
             return new Vector2 (-1, -1);
         }
 
-        private static void AddHallways (IRNG rng, IChunkBuilder builder, Direction dir, ProtoChunk neighbor) {
+        private static void AddHallways (int seed, IChunkBuilder builder, Direction dir, ProtoChunk neighbor) {
             foreach (var vec in neighbor.Hallways.Keys) {
                 var hallway = neighbor.Hallways[vec];
-                var roll = rng.Next (1);
+
+                Random.InitState (seed ^ (int) vec.x ^ (int) vec.y);
+                var roll = Random.Range(0, 101) / 100f;
+
                 var chance = hallway.BuildChance * 0.6f;
 
                 if (roll <= chance) {

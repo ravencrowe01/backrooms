@@ -1,9 +1,9 @@
-﻿using Backrooms.Assets.Scripts.RNG;
-using Backrooms.Assets.Scripts.World.Config;
+﻿using Backrooms.Assets.Scripts.World.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Backrooms.Assets.Scripts.World {
     public class GameWorld {
@@ -29,14 +29,11 @@ namespace Backrooms.Assets.Scripts.World {
                 .WithChunkDiminsions (_config.ChunkWidth, _config.ChunkHeight)
                 .WithRoomSize (_config.RoomSize);
 
-            var rng = new RNGProvider ();
-            rng.SetSeed (_config.Seed);
-
-            var area = builder.BuildArea (rng);
+            var area = builder.BuildArea (Seed);
 
             for (int x = 0; x < area.Chunks.GetLength (0); x++) {
                 for (int z = 0; z < area.Chunks.GetLength (1); z++) {
-                    FinalizeChunk (rng, area.Chunks[x, z], x, z);
+                    FinalizeChunk (Seed, area.Chunks[x, z], x, z);
                 }
             }
         }
@@ -46,9 +43,6 @@ namespace Backrooms.Assets.Scripts.World {
         public void GenerateChunk (int x, int z) {
             var builder = new ChunkBuilder ();
             var cords = new Vector2 (x, z);
-
-            var rng = new RNGProvider ();
-            rng.SetSeed ((_config.Seed / x) * z);
 
             builder.WithDiminsions (_config.ChunkWidth, _config.ChunkHeight)
                 .WithRoomSize (_config.RoomSize);
@@ -61,15 +55,15 @@ namespace Backrooms.Assets.Scripts.World {
                 if (neighbor is not null) {
                     AddChunkConnections (builder, dir, neighbor);
 
-                    AddHallways (rng, builder, dir, neighbor);
+                    AddHallways (Seed, builder, dir, neighbor);
                 }
             }
 
-            FinalizeChunk (rng, builder.BuildChunk (rng), x, z);
+            FinalizeChunk (Seed, builder.BuildChunk (Seed), x, z);
         }
 
-        private void FinalizeChunk (RNGProvider rng, IChunkConfig chunk, int x, int z) {
-            _config.ChunkRoot.AddChunk (chunk, _config.ChunkBase, rng);
+        private void FinalizeChunk (int seed, IChunkConfig chunk, int x, int z) {
+            _config.ChunkRoot.AddChunk (chunk, _config.ChunkBase, seed);
 
             _chunks.Add (_config.ChunkRoot.FindChunk (x, z));
         }
@@ -88,9 +82,10 @@ namespace Backrooms.Assets.Scripts.World {
             }
         }
 
-        private static void AddHallways (IRNG rng, IChunkBuilder builder, Direction dir, Chunk neighbor) {
+        private static void AddHallways (int seed, IChunkBuilder builder, Direction dir, Chunk neighbor) {
             foreach (var hallway in neighbor.Hallways) {
-                var roll = rng.Next (1);
+                Random.InitState (seed ^ (int) neighbor.Coordinates.x ^ (int) neighbor.Coordinates.y);
+                var roll = Random.Range (0, 101) / 100f;
                 var chance = hallway.Chance * 0.6f;
 
                 if (roll <= chance) {

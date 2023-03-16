@@ -1,5 +1,4 @@
-﻿using Backrooms.Assets.Scripts.RNG;
-using Backrooms.Assets.Scripts.World.Config;
+﻿using Backrooms.Assets.Scripts.World.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -101,44 +100,44 @@ namespace Backrooms.Assets.Scripts.World {
             return this;
         }
 
-        public ProtoChunk BuildChunkAsPrototype (IRNG RNG) {
+        public ProtoChunk BuildChunkAsPrototype (int seed) {
             var chunk = new ProtoChunk (_width);
 
             do {
-                ConstructRooms (chunk, RNG);
+                ConstructRooms (chunk, seed);
 
                 AddChunkConnections (chunk);
 
                 BuildHallways (chunk);
 
-                FixRoomConnections (chunk, RNG);
+                FixRoomConnections (chunk, seed);
             } while (!ChunkValidator.ValidateChunk (chunk));
 
             return chunk;
         }
 
-        public IChunkConfig BuildChunk (IRNG RNG) => BuildChunkAsPrototype (RNG).ToChunkConfig (_cords);
+        public IChunkConfig BuildChunk (int seed) => BuildChunkAsPrototype (seed).ToChunkConfig (_cords);
         #endregion
 
         #region Room Construction
-        private void ConstructRooms (ProtoChunk chunk, IRNG rand) {
+        private void ConstructRooms (ProtoChunk chunk, int seed) {
             for (int x = 0; x < _width; x++) {
                 for (int y = 0; y < _height; y++) {
-                    chunk.AddRoom (new Vector2 (x, y), ConstructRoom (x, y, rand));
+                    chunk.AddRoom (new Vector2 (x, y), ConstructRoom (x, y, seed));
                 }
             }
         }
 
-        private ProtoRoom ConstructRoom (int x, int y, IRNG IRNG) {
+        private ProtoRoom ConstructRoom (int x, int y, int seed) {
             var room = new ProtoRoom (new Vector2 (x, y), _roomSize);
             var openable = GetOpenableSides (x, y);
 
             // The outer rooms need to have at least one open side.
-            AddOpenSides (room, openable, IRNG);
+            AddOpenSides (room, openable, seed);
 
             // The center room needs to have at least two open sides.
             if (x == 0 && y == 0 && room.GetOpenSides ().Count < 2) {
-                AddOpenSides (room, openable, IRNG);
+                AddOpenSides (room, openable, seed);
             }
 
             return room;
@@ -175,20 +174,21 @@ namespace Backrooms.Assets.Scripts.World {
             return sides;
         }
 
-        private void AddOpenSides (ProtoRoom room, IList<Direction> directions, IRNG IRNG) {
-            var amt = IRNG.Next (1, directions.Count + 1);
+        private void AddOpenSides (ProtoRoom room, IList<Direction> directions, int seed) {
+            Random.InitState (seed ^ (int) room.Coordinates.x ^ (int) room.Coordinates.y);
+            var amt = Random.Range (1, directions.Count + 1);
 
             while (amt > 0) {
-                var chosenDir = directions[IRNG.Next (0, directions.Count)];
+                var chosenDir = directions[Random.Range (0, directions.Count)];
 
                 var chosenSide = room.GetSideState (chosenDir);
 
-                var states = IRNG.Next (1, _roomSize + 1);
+                var states = Random.Range (1, _roomSize + 1);
 
                 var tries = 0;
 
                 do {
-                    var state = IRNG.Next (0, _roomSize);
+                    var state = Random.Range (0, _roomSize);
 
                     if (!chosenSide.GetState (state)) {
                         chosenSide.SetState (state, true);
@@ -322,9 +322,11 @@ namespace Backrooms.Assets.Scripts.World {
         /// <summary>
         /// Fix connections between rooms.
         /// </summary>
-        private void FixRoomConnections (ProtoChunk chunk, IRNG rand) {
+        private void FixRoomConnections (ProtoChunk chunk, int seed) {
             for (int x = 0; x < _width; x++) {
                 for (int y = 0; y < _height; y++) {
+                    Random.InitState (seed ^ x ^ y);
+
                     var room = new Vector2 (x, y);
 
                     var adjacent = Utility.GetAdjacentVectors (room, _width, _height);
@@ -336,7 +338,7 @@ namespace Backrooms.Assets.Scripts.World {
 
                         for (int i = 0; i < _roomSize; i++) {
                             if (chunk.GetRoom (room).GetSideState (dir, i) != chunk.GetRoom (neighbor).GetSideState (neighborDir, i)) {
-                                var roll = rand.Next (2) == 1;
+                                var roll = Random.Range (0, 2) == 1;
 
                                 chunk.SetRoomSideState (room, dir, i, roll);
 
