@@ -97,7 +97,7 @@ namespace Backrooms.Assets.Scripts.World.Prototypes {
         }
 
         public ChunkConfig ToChunkConfig (Vector2 cords) {
-            var chunk = new ChunkConfig (cords, _rooms.GetLength (0), _rooms.GetLength (1));
+            var chunk = new ChunkConfig (cords, _rooms.GetLength (0));
 
             foreach (var hallway in _hallways.Keys) {
                 chunk.AddHallway (hallway, _hallways[hallway].Direction, _hallways[hallway].BuildChance);

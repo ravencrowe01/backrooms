@@ -25,8 +25,8 @@ namespace Backrooms.Assets.Scripts.World {
         public void GenerateStartingArea () {
             var builder = new AreaBuilder ();
 
-            builder.WithDiminsions (_config.StartingAreaWidth, _config.StartingAreaHeight)
-                .WithChunkDiminsions (_config.ChunkWidth, _config.ChunkHeight)
+            builder.WithSize (_config.StartingAreaSize)
+                .WithChunkSize (_config.ChunkSize)
                 .WithRoomSize (_config.RoomSize);
 
             var area = builder.BuildArea (Seed);
@@ -44,7 +44,7 @@ namespace Backrooms.Assets.Scripts.World {
             var builder = new ChunkBuilder ();
             var cords = new Vector2 (x, z);
 
-            builder.WithDiminsions (_config.ChunkWidth, _config.ChunkHeight)
+            builder.WithDiminsions (_config.ChunkSize)
                 .WithRoomSize (_config.RoomSize);
 
             foreach (var dir in Enum.GetValues (typeof (Direction)).Cast<Direction> ()) {

@@ -14,9 +14,7 @@ namespace Backrooms.Assets.Scripts.World {
         private Vector2 _cords;
 
         [SerializeField]
-        private int _width;
-        [SerializeField]
-        private int _height;
+        private int _size;
 
         private Room[,] _rooms;
 
@@ -33,12 +31,11 @@ namespace Backrooms.Assets.Scripts.World {
         protected Chunk () { }
 
         public void Init (IChunkConfig config, int seed) {
-            _width = config.Width;
-            _height = config.Height;
+            _size = config.Size;
 
             _cords = new Vector2 (config.Coordinates.x, config.Coordinates.y);
 
-            _rooms = new Room[config.Width, config.Height];
+            _rooms = new Room[config.Size, config.Size];
 
             OpenConnections = config.GetOpenSides ();
 
@@ -46,8 +43,8 @@ namespace Backrooms.Assets.Scripts.World {
 
             BuildRoomsHolder ();
 
-            for (int x = 0; x < config.Width; x++) {
-                for (int z = 0; z < config.Height; z++) {
+            for (int x = 0; x < config.Size; x++) {
+                for (int z = 0; z < config.Size; z++) {
                     Random.InitState (seed ^ x ^ z);
 
                     var roomConfig = config.Rooms[x, z];
@@ -60,7 +57,7 @@ namespace Backrooms.Assets.Scripts.World {
         }
 
         private void BuildRoomsHolder () {
-            for (int x = 0; x < _width; x++) {
+            for (int x = 0; x < _size; x++) {
                 var c = Instantiate (ChunkColumn, this.transform);
 
                 c.transform.position = new Vector3 (x * _chunkSize, 0, 0);
@@ -68,8 +65,8 @@ namespace Backrooms.Assets.Scripts.World {
         }
 
         public void InstantiateRooms () {
-            for (int x = 0; x < _width; x++) {
-                for (int z = 0; z < _height; z++) {
+            for (int x = 0; x < _size; x++) {
+                for (int z = 0; z < _size; z++) {
                     var trans = transform.GetChild (x);
                     var room = Instantiate (_rooms[x, z], trans);
 

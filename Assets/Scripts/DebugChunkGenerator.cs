@@ -27,7 +27,7 @@ namespace Backrooms.Assets.Scripts {
         private void BuildChunk (int x, int z, int seed) {
             var builder = new ChunkBuilder ();
 
-            builder.WithDiminsions (3, 3)
+            builder.WithDiminsions (3)
                 .WithCoordinates (new Vector2 (0, 0))
                 .WithRoomSize (1);
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using UnityEngine;
 
@@ -7,8 +8,7 @@ namespace Backrooms.Assets.Scripts.World.Config {
         public Vector2 Coordinates => new Vector2 (_cords.x, _cords.y); 
         private Vector2 _cords;
 
-        public int Width { get; private set; }
-        public int Height { get; private set; }
+        public int Size { get; private set; }
 
         public IRoomConfig[,] Rooms => (IRoomConfig[,]) _rooms.Clone ();
         private IRoomConfig[,] _rooms;
@@ -18,17 +18,15 @@ namespace Backrooms.Assets.Scripts.World.Config {
 
         public ChunkConfig (Vector2 cords, IRoomConfig[,] rooms, List<IHallwayConfig> hallways) {
             _cords = cords;
-            Width = rooms.GetLength (0);
-            Height = rooms.GetLength (1);
+            Size = rooms.GetLength (0);
             _rooms = rooms;
             _hallways = hallways;
         }
 
-        public ChunkConfig (Vector2 cords, int width, int height) {
+        public ChunkConfig (Vector2 cords, int size) {
             _cords = cords;
-            Width = width;
-            Height = height;
-            _rooms = new IRoomConfig[width, height];
+            Size = size;
+            _rooms = new IRoomConfig[size, size];
             _hallways = new List<IHallwayConfig> ();
         }
 
@@ -44,8 +42,8 @@ namespace Backrooms.Assets.Scripts.World.Config {
                 {Direction.West, new List<IRoomConfig>() }
             };
 
-            for (int x = 0; x < Width; x++) {
-                for (int y = 0; y < Height; y++) {
+            for (int x = 0; x < Size; x++) {
+                for (int y = 0; y < Size; y++) {
                     if (IsEdgeRoom (x, y)) {
                         var open = _rooms[x, y].GetOpenSides ();
 
@@ -53,7 +51,7 @@ namespace Backrooms.Assets.Scripts.World.Config {
                             open.Remove (Direction.West);
                         }
 
-                        if (x != Width - 1) {
+                        if (x != Size - 1) {
                             open.Remove (Direction.East);
                         }
 
@@ -61,7 +59,7 @@ namespace Backrooms.Assets.Scripts.World.Config {
                             open.Remove (Direction.North);
                         }
 
-                        if (y != Height - 1) {
+                        if (y != Size - 1) {
                             open.Remove (Direction.South);
                         }
 
@@ -74,7 +72,7 @@ namespace Backrooms.Assets.Scripts.World.Config {
 
             return states;
 
-            bool IsEdgeRoom (int x, int y) => x == 0 && y >= 0 || x >= 0 && y == 0 || x == Width - 1 && y >= 0 || x >= 0 && y == Height - 1;
+            bool IsEdgeRoom (int x, int y) => x == 0 && y >= 0 || x >= 0 && y == 0 || x == Size - 1 && y >= 0 || x >= 0 && y == Size - 1;
         }
     }
 }

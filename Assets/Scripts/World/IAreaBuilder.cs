@@ -3,8 +3,8 @@
 namespace Backrooms.Assets.Scripts.World {
     public interface IAreaBuilder {
         IAreaConfig BuildArea (int rng);
-        IAreaBuilder WithChunkDiminsions (int width, int height);
-        IAreaBuilder WithDiminsions (int width, int height);
+        IAreaBuilder WithChunkSize (int size);
+        IAreaBuilder WithSize (int size);
         IAreaBuilder WithRoomSize (int size);
     }
 }

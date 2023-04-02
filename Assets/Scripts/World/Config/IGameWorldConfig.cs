@@ -5,10 +5,9 @@ namespace Backrooms.Assets.Scripts.World.Config {
     public interface IGameWorldConfig {
         string Name { get; }
 
-        int StartingAreaWidth { get; }
-        int StartingAreaHeight { get; }
+        int StartingAreaSize { get; }
 
-        int ChunkWidth { get; }
+        int ChunkSize { get; }
         int ChunkHeight { get; }
 
         int RoomSize { get; }

@@ -1,7 +1,6 @@
 ﻿using Backrooms.Assets.Scripts.World.Config;
 using Backrooms.Assets.Scripts.World.Prototypes;
 using System;
-using System.Drawing;
 using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -9,23 +8,19 @@ using Random = UnityEngine.Random;
 
 namespace Backrooms.Assets.Scripts.World {
     public class AreaBuilder : IAreaBuilder {
-        private int _width = 3;
-        private int _height = 3;
+        private int _size = 3;
 
-        private int _cWidth = 3;
-        private int _cHeight = 3;
+        private int _chunkSize = 3;
 
         private int _roomSize = 1;
 
-        public IAreaBuilder WithDiminsions (int width, int height) {
-            _width = width;
-            _height = height;
+        public IAreaBuilder WithSize (int size) {
+            _size = size;
             return this;
         }
 
-        public IAreaBuilder WithChunkDiminsions (int width, int height) {
-            _cWidth = width;
-            _cHeight = height;
+        public IAreaBuilder WithChunkSize (int size) {
+            _chunkSize = size;
             return this;
         }
 
@@ -35,7 +30,7 @@ namespace Backrooms.Assets.Scripts.World {
         }
 
         public IAreaConfig BuildArea (int seed) {
-            var area = new ProtoArea (_width);
+            var area = new ProtoArea (_size);
 
             AddSeedChunks (seed, area);
 
@@ -43,19 +38,19 @@ namespace Backrooms.Assets.Scripts.World {
 
             FixChunkConnections (area);
 
-            return area.ToAreaConfig();
+            return area.ToAreaConfig ();
         }
 
         private void AddSeedChunks (int seed, ProtoArea area) {
-            var a = _width * _height;
+            var a = _size * _size;
             Random.InitState (seed);
 
             for (int i = 0; i < a / 10 + 1; i++) {
                 int x, y;
 
                 do {
-                    x = Random.Range (0, _width);
-                    y = Random.Range (0, _width);
+                    x = Random.Range (0, _size);
+                    y = Random.Range (0, _size);
                 } while (area.GetChunk (x, y) is not null);
 
                 var chunk = BuildChunk (seed, area, new Vector2 (x, y));
@@ -65,8 +60,8 @@ namespace Backrooms.Assets.Scripts.World {
         }
 
         private void AddChunks (int seed, ProtoArea area) {
-            for (int x = 0; x < _width; x++) {
-                for (int y = 0; y < _height; y++) {
+            for (int x = 0; x < _size; x++) {
+                for (int y = 0; y < _size; y++) {
                     if (area.GetChunk (x, y) is null) {
                         var chunk = BuildChunk (seed, area, new Vector2 (x, y));
                         area.AddChunk (chunk, x, y);
@@ -76,12 +71,12 @@ namespace Backrooms.Assets.Scripts.World {
         }
 
         private ProtoChunk BuildChunk (int seed, ProtoArea area, Vector2 cords) {
-            var builder = new ChunkBuilder ().WithDiminsions (_cWidth, _cHeight).WithCoordinates (cords).WithRoomSize(_roomSize);
+            var builder = new ChunkBuilder ().WithDiminsions (_chunkSize).WithCoordinates (cords).WithRoomSize (_roomSize);
 
             foreach (var dir in (Direction[]) Enum.GetValues (typeof (Direction))) {
                 var nCords = cords + Utility.GetVectorFromDirection (dir);
 
-                if (nCords.x >= 0 && nCords.x < _height && nCords.y >= 0 && nCords.y < _height) {
+                if (nCords.x >= 0 && nCords.x < _size && nCords.y >= 0 && nCords.y < _size) {
                     var neighbor = area.GetChunk ((int) nCords.x, (int) nCords.y);
 
                     if (neighbor is not null) {
@@ -98,7 +93,7 @@ namespace Backrooms.Assets.Scripts.World {
         private void AddConnections (IChunkBuilder builder, Direction dir, ProtoChunk neighbor) {
             var opDir = Utility.GetOppositeDirection (dir);
 
-            var open = neighbor.GetOpenSides ()[opDir].Where(r => r.GetSideState(opDir).Open);
+            var open = neighbor.GetOpenSides ()[opDir].Where (r => r.GetSideState (opDir).Open);
 
             foreach (var op in open) {
                 var target = GetConnectionTarget (op.Coordinates, dir);
@@ -107,20 +102,20 @@ namespace Backrooms.Assets.Scripts.World {
             }
         }
 
-        private Vector2 GetConnectionTarget(Vector2 origin, Direction dir) {
-            if(dir == Direction.North) {
-                return new Vector2 (origin.x, _cWidth - 1);
+        private Vector2 GetConnectionTarget (Vector2 origin, Direction dir) {
+            if (dir == Direction.North) {
+                return new Vector2 (origin.x, _chunkSize - 1);
             }
 
-            if(dir == Direction.South) {
+            if (dir == Direction.South) {
                 return new Vector2 (origin.x, 0);
             }
 
-            if(dir == Direction.East) {
-                return new Vector2 (_cWidth - 1, origin.y);
+            if (dir == Direction.East) {
+                return new Vector2 (_chunkSize - 1, origin.y);
             }
 
-            if(dir == Direction.West) {
+            if (dir == Direction.West) {
                 return new Vector2 (0, origin.y);
             }
 
@@ -132,7 +127,7 @@ namespace Backrooms.Assets.Scripts.World {
                 var hallway = neighbor.Hallways[vec];
 
                 Random.InitState (seed ^ (int) vec.x ^ (int) vec.y);
-                var roll = Random.Range(0, 101) / 100f;
+                var roll = Random.Range (0, 101) / 100f;
 
                 var chance = hallway.BuildChance * 0.6f;
 
@@ -149,42 +144,42 @@ namespace Backrooms.Assets.Scripts.World {
             }
         }
 
-        private void FixChunkConnections(ProtoArea area) {
-            for(int x = 0; x < _width; x++) { 
-                for (int y = 0; y < _width; y++) {
+        private void FixChunkConnections (ProtoArea area) {
+            for (int x = 0; x < _size; x++) {
+                for (int y = 0; y < _size; y++) {
                     var chunk = area.GetChunk (x, y);
 
-                    foreach(var dir in (Direction[]) Enum.GetValues (typeof (Direction))) {
+                    foreach (var dir in (Direction[]) Enum.GetValues (typeof (Direction))) {
                         var adjVec = Utility.GetVectorFromDirection (dir) + new Vector2 (x, y);
 
-                        if (adjVec.x >= 0 && adjVec.x < _width && adjVec.y >= 0 && adjVec.y < _width) {
+                        if (adjVec.x >= 0 && adjVec.x < _size && adjVec.y >= 0 && adjVec.y < _size) {
                             var adjChunk = area.GetChunk ((int) adjVec.x, (int) adjVec.y);
 
-                            for(int i = 0; i < _cWidth; i++) {
+                            for (int i = 0; i < _chunkSize; i++) {
                                 Vector2 roomVec;
                                 Vector2 adjRoomVec;
 
-                                if(dir == Direction.North) {
-                                    roomVec = new Vector2 (i, _cWidth - 1);
+                                if (dir == Direction.North) {
+                                    roomVec = new Vector2 (i, _chunkSize - 1);
                                     adjRoomVec = new Vector2 (i, 0);
                                 }
-                                else if(dir == Direction.South) {
+                                else if (dir == Direction.South) {
                                     roomVec = new Vector2 (i, 0);
-                                    adjRoomVec = new Vector2 (i, _cWidth - 1);
+                                    adjRoomVec = new Vector2 (i, _chunkSize - 1);
                                 }
                                 else if (dir == Direction.East) {
                                     roomVec = new Vector2 (0, i);
-                                    adjRoomVec = new Vector2 (_cWidth - 1, i);
+                                    adjRoomVec = new Vector2 (_chunkSize - 1, i);
                                 }
                                 else {
-                                    roomVec = new Vector2 (_cWidth - 1, i);
+                                    roomVec = new Vector2 (_chunkSize - 1, i);
                                     adjRoomVec = new Vector2 (0, i);
                                 }
 
                                 var room = chunk.GetRoom (roomVec);
                                 var adjRoom = adjChunk.GetRoom (adjRoomVec);
 
-                                if(room.GetSideState(dir).Open != adjRoom.GetSideState(Utility.GetOppositeDirection(dir)).Open) {
+                                if (room.GetSideState (dir).Open != adjRoom.GetSideState (Utility.GetOppositeDirection (dir)).Open) {
                                     var open = DateTime.Now.Ticks & 1;
 
                                     room.SetSideTotalState (dir, false);

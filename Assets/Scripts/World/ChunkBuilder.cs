@@ -10,9 +10,7 @@ using UnityEngine.UI;
 
 namespace Backrooms.Assets.Scripts.World {
     public class ChunkBuilder : IChunkBuilder {
-        private int _width = 3;
-        private int _height = 3;
-
+        private int _size = 3;
         private int _roomSize = 1;
 
         private Dictionary<Vector2, Dictionary<Direction, ProtoSideState>> _chunkConnections = new ();
@@ -23,14 +21,13 @@ namespace Backrooms.Assets.Scripts.World {
 
 
         #region Fluent methods
-        public IChunkBuilder WithDiminsions (int width, int height) {
-            _width = width;
-            _height = height;
+        public IChunkBuilder WithDiminsions (int size) {
+            _size = size;
             return this;
         }
 
-        public IChunkBuilder WithRoomSize (int amt = 1) {
-            _roomSize = amt;
+        public IChunkBuilder WithRoomSize (int size = 1) {
+            _roomSize = size;
             return this;
         }
 
@@ -64,11 +61,11 @@ namespace Backrooms.Assets.Scripts.World {
 
         public IChunkBuilder WithHallway (Vector2 start, float chance, Direction dir) {
             if (IsEdgeRoom (start)) {
-                if (start.x != 0 && start.y == _height - 1) {
+                if (start.x != 0 && start.y == _size - 1) {
                     start.y = 0;
                 }
 
-                if (start.y != 0 && start.x == _width - 1) {
+                if (start.y != 0 && start.x == _size - 1) {
                     start.x = 0;
                 }
 
@@ -92,7 +89,7 @@ namespace Backrooms.Assets.Scripts.World {
 
             return this;
 
-            bool IsEdgeRoom (Vector2 start) => start.x == 0 || start.x == _width - 1 || start.y == 0 || start.y == _height - 1;
+            bool IsEdgeRoom (Vector2 start) => start.x == 0 || start.x == _size - 1 || start.y == 0 || start.y == _size - 1;
         }
 
         public IChunkBuilder WithCoordinates (Vector2 cords) {
@@ -101,7 +98,7 @@ namespace Backrooms.Assets.Scripts.World {
         }
 
         public ProtoChunk BuildChunkAsPrototype (int seed) {
-            var chunk = new ProtoChunk (_width);
+            var chunk = new ProtoChunk (_size);
 
             do {
                 ConstructRooms (chunk, seed);
@@ -121,8 +118,8 @@ namespace Backrooms.Assets.Scripts.World {
 
         #region Room Construction
         private void ConstructRooms (ProtoChunk chunk, int seed) {
-            for (int x = 0; x < _width; x++) {
-                for (int y = 0; y < _height; y++) {
+            for (int x = 0; x < _size; x++) {
+                for (int y = 0; y < _size; y++) {
                     chunk.AddRoom (new Vector2 (x, y), ConstructRoom (x, y, seed));
                 }
             }
@@ -147,14 +144,14 @@ namespace Backrooms.Assets.Scripts.World {
             var sides = new List<Direction> ();
 
             // TODO RoomOutOfBoundsException
-            if (x < 0 || x > _width || y < 0 || y > _height) {
+            if (x < 0 || x > _size || y < 0 || y > _size) {
                 throw new IndexOutOfRangeException ($"[{GetType ().Name}.{nameof (GetOpenableSides)}]: Tried to access out of bounds room {{{x}, {y}}}");
             }
 
             if (x == 0) {
                 sides.Add (Direction.East);
             }
-            else if (x == _width - 1) {
+            else if (x == _size - 1) {
                 sides.Add (Direction.West);
             }
             else {
@@ -164,7 +161,7 @@ namespace Backrooms.Assets.Scripts.World {
             if (y == 0) {
                 sides.Add (Direction.North);
             }
-            else if (y == _height - 1) {
+            else if (y == _size - 1) {
                 sides.Add (Direction.South);
             }
             else {
@@ -227,7 +224,7 @@ namespace Backrooms.Assets.Scripts.World {
             while (roll > 0) {
                 var dir = (Direction) Random.Range (0, 4);
 
-                var room = Random.Range (0, _width);
+                var room = Random.Range (0, _size);
 
                 Vector2 roomCords = GetConnectionRoomCoordinates (dir, room);
 
@@ -254,7 +251,7 @@ namespace Backrooms.Assets.Scripts.World {
 
         private Vector2 GetConnectionRoomCoordinates (Direction dir, int room) {
             if (dir == Direction.North) {
-                return new Vector2 (room, _width - 1);
+                return new Vector2 (room, _size - 1);
             }
 
             else if (dir == Direction.South) {
@@ -262,7 +259,7 @@ namespace Backrooms.Assets.Scripts.World {
             }
 
             else if (dir == Direction.East) {
-                return new Vector2 (_width - 1, room);
+                return new Vector2 (_size - 1, room);
             }
 
             else if (dir == Direction.West) {
@@ -293,7 +290,7 @@ namespace Backrooms.Assets.Scripts.World {
         }
 
         private void BuildHallway (ProtoChunk chunk, Vector2 start, Direction dir) {
-            var limit = dir == Direction.South ? _height : _width;
+            var limit = dir == Direction.South ? _size : _size;
 
             for (int i = 0; i < limit; i++) {
                 var x = dir == Direction.South ? start.x : i;
@@ -323,13 +320,13 @@ namespace Backrooms.Assets.Scripts.World {
         /// Fix connections between rooms.
         /// </summary>
         private void FixRoomConnections (ProtoChunk chunk, int seed) {
-            for (int x = 0; x < _width; x++) {
-                for (int y = 0; y < _height; y++) {
+            for (int x = 0; x < _size; x++) {
+                for (int y = 0; y < _size; y++) {
                     Random.InitState (seed ^ x ^ y);
 
                     var room = new Vector2 (x, y);
 
-                    var adjacent = Utility.GetAdjacentVectors (room, _width, _height);
+                    var adjacent = Utility.GetAdjacentVectors (room, _size, _size);
 
                     foreach (var neighbor in adjacent) {
                         var dir = Utility.GetDirectionFromVector (neighbor - room);

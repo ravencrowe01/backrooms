@@ -8,7 +8,7 @@ namespace Backrooms.Assets.Scripts.World {
         ProtoChunk BuildChunkAsPrototype (int seed);
         IChunkBuilder WithConnection (Vector2 connectedRoom, Direction dir);
         IChunkBuilder WithCoordinates (Vector2 cords);
-        IChunkBuilder WithDiminsions (int width, int height);
+        IChunkBuilder WithDiminsions (int size);
         IChunkBuilder WithHallway (Vector2 start, float chance, Direction dir);
         IChunkBuilder WithRoomSize (int amt = 1);
     }
