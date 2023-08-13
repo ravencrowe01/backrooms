@@ -27,7 +27,7 @@ namespace Raven.backrooms.Managers {
 
             _playerInput = new PlayerInput ();
 
-            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.lockState = CursorLockMode.Confined;
         }
 
         private void Update () {
@@ -46,8 +46,12 @@ namespace Raven.backrooms.Managers {
             _playerInput.Disable ();
         }
 
+        public void UpdateCursorLockState (CursorLockMode mode) => Cursor.lockState = mode;
+
         public Vector2 GetPlayerMovement () => _pcMovement;
+
         public bool GetPlayerJumped () => _pcJumped;
+
         public Vector2 GetPlayerRotation () => _pcRotate;
 
         private void OnApplicationFocus (bool focus) {
