@@ -5,4 +5,6 @@ namespace Raven.backrooms.World {
     public class Player : MonoBehaviour {
         public Camera Camera;
     }
+
+    public Vector3 GetPos () => new Vector3();
 }

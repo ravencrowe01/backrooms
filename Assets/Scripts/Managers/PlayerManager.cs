@@ -47,6 +47,7 @@ namespace Raven.backrooms.Managers {
             }
         }
 
+        // TODO This needs to be moved into the player class.
         private void MovePlayer () {
             _groundedPlayer = _controller.isGrounded;
 
