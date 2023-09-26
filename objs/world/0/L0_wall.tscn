@@ -1,0 +1,5 @@
+[gd_scene load_steps=2 format=3 uid="uid://dpyihnvn7ruc6"]
+
+[ext_resource type="PackedScene" uid="uid://ddoabyt2h5r5c" path="res://objs/world/base_wall.tscn" id="1_wsghi"]
+
+[node name="Wall" instance=ExtResource("1_wsghi")]

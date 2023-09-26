@@ -2,3 +2,11 @@ ea4bc82a6ad023ab7ee23ee620429895
 ::res://::1692559450
 icon.svg::CompressedTexture2D::4494799886346883074::1695751260::1695751284::1::::<><>::
 README.md::TextFile::-1::1692559472::0::1::::<><>::
+::res://lib/::1695752280
+::res://objs/::1695752368
+::res://objs/world/::1695752372
+base_column.tscn::PackedScene::8124946004693625611::1695754256::0::1::::<><>::
+base_wall.tscn::PackedScene::7398732947493140034::1695754244::0::1::::<><>::
+::res://objs/world/0/::1695752382
+L0_wall.tscn::PackedScene::8262138724125248795::1695753622::0::1::::<><>::uid://ddoabyt2h5r5c::::res://objs/world/base_wall.tscn
+::res://scripts/::1695752242
